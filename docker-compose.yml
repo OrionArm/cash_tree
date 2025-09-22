@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend-dev
+    volumes:
+      - ./backend:/app/backend
+      - /app/node_modules
+      - /app/backend/node_modules
+    working_dir: /app/backend
+    env_file: .env
+    ports:
+      - '${PORT}:${PORT}'
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/node_modules
+      - /app/frontend/node_modules
+    working_dir: /app/frontend
+    env_file: .env
+    ports:
+      - '${VITE_PORT}:${VITE_PORT}'

@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend-prod
+    env_file: .env
+    ports:
+      - '${PORT}:${PORT}'
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend-prod
+    env_file: .env
+    ports:
+      - '80:80'
+    depends_on:
+      - backend

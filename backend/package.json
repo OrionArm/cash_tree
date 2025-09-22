@@ -1,0 +1,37 @@
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "description": "",
+  "author": "Moshchenkov R.S.",
+  "private": true,
+  "license": "ISC",
+  "scripts": {
+    "start": "pnpm run build && fastify start -l info dist/app.js",
+    "start:dev": "pnpm run build && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"pnpm run watch:ts\" \"pnpm exec fastify start --ignore-watch=.ts$ -w -l info -P dist/app.js\"",
+    "watch:ts": "tsc -w",
+    "build": "tsc -p tsconfig.json",
+    "test": "pnpm run build && tsc -p test/tsconfig.json && c8 node --test -r ts-node/register \"test/**/*.ts\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "fastify-plugin": "^5.0.0",
+    "@fastify/autoload": "^6.0.0",
+    "@fastify/sensible": "^6.0.0",
+    "fastify-cli": "^7.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.1.0",
+    "c8": "^10.1.2",
+    "ts-node": "^10.4.0",
+    "concurrently": "^9.0.0",
+    "fastify-tsconfig": "^3.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  }
+}
