@@ -12,6 +12,8 @@ services:
     env_file: .env
     ports:
       - '${PORT}:${PORT}'
+    networks:
+      - app-network
 
   frontend:
     build:
@@ -26,3 +28,11 @@ services:
     env_file: .env
     ports:
       - '${VITE_PORT}:${VITE_PORT}'
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+networks:
+  app-network:
+    driver: bridge

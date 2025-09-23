@@ -1,0 +1,26 @@
+.toggleButton {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  border-radius: 2px;
+  transition: background-color 0.2s ease;
+}
+
+.toggleButton:hover {
+  background: var(--color-gray-200);
+}
+
+.toggleIcon {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.toggleIcon.expanded {
+  transform: rotate(90deg);
+}

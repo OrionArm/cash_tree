@@ -1,0 +1,43 @@
+.treeNode {
+  margin: 2px 0;
+}
+
+.treeNodeContent {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+  padding-left: calc(var(--level) * 16px + 8px);
+}
+
+.treeNodeContent:hover {
+  background: var(--color-gray-100);
+}
+
+.treeNodeContent.selected {
+  background: var(--color-selected);
+  border: 1px solid var(--color-selected-border);
+}
+
+.treeNodeContent.selected:hover {
+  background: var(--color-selected-hover);
+}
+
+.nodeName {
+  flex: 1;
+  font-size: 14px;
+  color: var(--color-gray-700);
+}
+
+.children {
+  margin-left: 20px;
+  border-left: 1px dashed var(--color-border-dashed);
+  padding-left: 8px;
+}
+
+.spacer {
+  width: 20px;
+}

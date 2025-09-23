@@ -1,0 +1,38 @@
+.toolbarActions {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  flex-wrap: wrap;
+}
+
+.compact {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--color-border-modal);
+  border-radius: 4px;
+  background-color: var(--color-white);
+  color: var(--color-gray-600-alt);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.compact:hover:not(.disabled) {
+  background-color: var(--color-gray-200-alt);
+  border-color: var(--color-gray-400-alt);
+}
+
+.compact.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toolbarIcon {
+  font-size: 14px;
+}
+
+.toolbarLabel {
+  font-weight: 500;
+}

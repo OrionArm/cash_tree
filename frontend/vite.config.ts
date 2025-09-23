@@ -2,9 +2,11 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getApiUrl } from './src/shared/config/env';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const portFromEnv = Number(process.env.VITE_PORT) || 5173;
+const API_TARGET = getApiUrl(process.env);
 
 export default defineConfig({
   plugins: [react()],
@@ -14,11 +16,18 @@ export default defineConfig({
     },
   },
   server: {
-    host: true, // 0.0.0.0 внутри контейнера
+    host: true,
     port: portFromEnv,
     strictPort: true,
     hmr: {
       clientPort: portFromEnv,
+    },
+    proxy: {
+      '/api': {
+        target: API_TARGET,
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });

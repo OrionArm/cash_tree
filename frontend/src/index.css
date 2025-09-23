@@ -1,24 +1,58 @@
 :root {
-  /* color palette */
-  --color-bg: #242424;
-  --color-text: rgba(255, 255, 255, 0.87);
-  /* semantic */
-  --color-modal-bg: #1a1d26;
-  --color-text-weak: #e8e8e8;
-  --color-text-weak-2: #e7e7e7;
-  --color-text-dark: #1a1a1a;
-  --color-text-darker: #0e0f12;
-  /* utility */
-  --white-a20: rgba(255, 255, 255, 0.2);
-  --black-a10: rgba(0, 0, 0, 0.1);
+  /* Основная палитра */
+  --color-primary: #007bff;
+  --color-primary-hover: #0056b3;
+  --color-danger: #dc3545;
+  --color-danger-hover: #c82333;
+
+  /* Нейтральные цвета */
+  --color-white: #ffffff;
+  --color-gray-50: #f8f9fa;
+  --color-gray-100: #f0f0f0;
+  --color-gray-200: #e0e0e0;
+  --color-gray-300: #d0d0d0;
+  --color-gray-400: #a0a0a0;
+  --color-gray-500: #666666;
+  --color-gray-600: #555555;
+  --color-gray-700: #333333;
+  --color-gray-800: #1a1a1a;
+
+  /* Фоновые цвета */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f5f5f5;
+  --color-bg-toolbar: #f8f9fa;
+
+  /* Цвета состояний */
+  --color-selected: #e3f2fd;
+  --color-selected-hover: #bbdefb;
+  --color-selected-border: #2196f3;
+
+  /* Тени и оверлеи */
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-shadow-modal: rgba(0, 0, 0, 0.15);
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --color-focus: rgba(0, 123, 255, 0.25);
+
+  /* Границы */
+  --color-border: #e0e0e0;
+  --color-border-light: #d0d0d0;
+  --color-border-dashed: #cccccc;
+  --color-border-modal: #ddd;
+
+  /* Дополнительные серые цвета */
+  --color-gray-900: #1a1a1a;
+  --color-gray-600-alt: #495057;
+  --color-gray-400-alt: #adb5bd;
+  --color-gray-200-alt: #e9ecef;
+  --color-gray-100-alt: #f8f9fa;
+  --color-gray-600-secondary: #6c757d;
+  --color-gray-700-secondary: #545b62;
 
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: var(--color-text);
-
+  color-scheme: light;
+  color: var(--color-gray-700);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
