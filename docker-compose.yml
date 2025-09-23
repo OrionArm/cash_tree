@@ -1,4 +1,17 @@
 services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-financial_road}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
   backend:
     build:
       context: .
@@ -12,6 +25,10 @@ services:
     env_file: .env
     ports:
       - '${PORT}:${PORT}'
+    networks:
+      - app-network
+    depends_on:
+      - postgres
 
   frontend:
     build:
@@ -26,3 +43,14 @@ services:
     env_file: .env
     ports:
       - '${VITE_PORT}:${VITE_PORT}'
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

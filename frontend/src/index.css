@@ -2,15 +2,56 @@
   /* color palette */
   --color-bg: #242424;
   --color-text: rgba(255, 255, 255, 0.87);
+  --color-overlay-bg: rgba(0, 0, 0, 0.7);
+  --color-overlay-border: rgba(255, 255, 255, 0.1);
+  --color-overlay-dim: rgba(0, 0, 0, 0.6);
+  --color-border-subtle-weak: rgba(255, 255, 255, 0.08);
+  --color-ground-stripe-a: #3b2f2f;
+  --color-ground-stripe-b: #443333;
+  --color-sky-top: #263b6a;
+  --color-sky-bottom: #1a2440;
   /* semantic */
   --color-modal-bg: #1a1d26;
   --color-text-weak: #e8e8e8;
   --color-text-weak-2: #e7e7e7;
   --color-text-dark: #1a1a1a;
   --color-text-darker: #0e0f12;
+  --color-ground-border: rgba(0, 0, 0, 0.35);
+  /* gold theme */
+  --color-gold-1: #ffd700;
+  --color-gold-2: #ffed4e;
+  --color-gold-3: #f0cc54;
+  --color-gold-shadow: #b3902f;
+  --color-gold-shadow-disabled: #8a7a2a;
+  --color-gold-glow-weak: rgba(255, 215, 0, 0.7);
+  --color-gold-glow-strong: rgba(255, 215, 0, 1);
+  --color-gold-glow-soft: rgba(255, 215, 0, 0.6);
+  /* prefer sRGB interpolation for gradients across browsers */
+  --gradient-space: srgb;
   /* utility */
   --white-a20: rgba(255, 255, 255, 0.2);
+  --white-a30: rgba(255, 255, 255, 0.3);
+  --white-a40: rgba(255, 255, 255, 0.4);
   --black-a10: rgba(0, 0, 0, 0.1);
+  --black-a15: rgba(0, 0, 0, 0.15);
+  --black-a20: rgba(0, 0, 0, 0.2);
+
+  /* z-index layers */
+  --z-bg: 0; /* viewport gradient */
+  --z-parallax-far: 1; /* far parallax layer */
+  --z-parallax-near: 2; /* near parallax layer */
+  --z-ground: 3; /* world and ground */
+  --z-encounter: 4;
+  --z-player: 5;
+  --z-overlay: 6;
+  --z-overlay-modal: 7;
+  /* asset urls */
+  --img-parallax-far: url('/far.svg');
+  --img-parallax-near: url('/near.svg');
+  --img-player: url('/player.svg');
+  --img-encounter-npc: url('/npc.svg');
+  --img-encounter-monster: url('/monster.svg');
+  --img-encounter-chest: url('/chest.svg');
 
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

@@ -1,0 +1,91 @@
+.world-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* background: linear-gradient(180deg, var(--color-sky-top) 0%, var(--color-sky-bottom) 100%); */
+  z-index: var(--z-bg);
+
+  background-image: var(--img-parallax-far);
+  background-position-x: var(--para-far);
+}
+
+.layerFar,
+.layerNear {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--ground) - 24px);
+  height: calc(var(--tile) * 2.8);
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position-y: bottom;
+  pointer-events: none;
+}
+
+.layerNear {
+  background-image: var(--img-parallax-near);
+  background-position-x: var(--para-near);
+  bottom: calc(var(--ground) - 20px);
+  opacity: 0.95;
+  z-index: var(--z-parallax-near);
+}
+
+.world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  will-change: transform;
+  z-index: var(--z-ground);
+}
+
+.ground {
+  position: absolute;
+  bottom: 0;
+  height: var(--ground);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-ground-stripe-a) 0 32px,
+    var(--color-ground-stripe-b) 32px 64px
+  );
+  border-top: 4px solid var(--color-ground-border);
+  z-index: var(--z-ground);
+}
+
+.player {
+  position: absolute;
+  bottom: calc(var(--ground) - 24px);
+  width: calc(var(--tile) * 0.625);
+  height: var(--tile);
+  margin-left: calc(-0.5 * var(--tile) * 0.625); /* center on x */
+  background-image: var(--img-player);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+  z-index: var(--z-player);
+}
+
+.encounter {
+  position: absolute;
+  bottom: calc(var(--ground) - 24px);
+  width: calc(var(--tile) * 0.75);
+  height: calc(var(--tile) * 0.75);
+  margin-left: calc(-0.5 * var(--tile) * 0.75);
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+  z-index: var(--z-encounter);
+}
+.encounter-npc {
+  background-image: var(--img-encounter-npc);
+}
+.encounter-monster {
+  background-image: var(--img-encounter-monster);
+}
+.encounter-chest {
+  background-image: var(--img-encounter-chest);
+}
+.resolved {
+  filter: grayscale(1) brightness(0.6);
+  opacity: 0.6;
+}

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const portFromEnv = Number(process.env.VITE_PORT) || 5173;
+const apiBaseUrl = process.env.VITE_API_URL || 'http://localhost:3000';
 
 export default defineConfig({
   plugins: [react()],
@@ -14,11 +15,18 @@ export default defineConfig({
     },
   },
   server: {
-    host: true, // 0.0.0.0 внутри контейнера
+    host: true,
     port: portFromEnv,
     strictPort: true,
     hmr: {
       clientPort: portFromEnv,
+    },
+    proxy: {
+      '/api': {
+        target: apiBaseUrl,
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });

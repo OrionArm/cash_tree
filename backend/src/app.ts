@@ -5,33 +5,37 @@ import { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
 export interface AppOptions
   extends FastifyServerOptions,
     Partial<AutoloadPluginOptions> {}
-// Pass --options via CLI arguments in command to enable these options.
-const options: AppOptions = {};
+
+const options: AppOptions = {
+  logger: {
+    level: 'info',
+    transport: {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: 'HH:MM:ss Z',
+        ignore: 'pid,hostname',
+        singleLine: false,
+      },
+    },
+  },
+};
 
 const app: FastifyPluginAsync<AppOptions> = async (
   fastify,
   opts,
 ): Promise<void> => {
-  // Place here your custom code!
+  await fastify.register(require('@fastify/cookie'), {
+    secret: process.env.COOKIE_SECRET,
+  });
 
-  // Do not touch the following lines
-
-  // This loads all plugins defined in plugins
-  // those should be support plugins that are reused
-  // through your application
-  // eslint-disable-next-line no-void
-  void fastify.register(AutoLoad, {
+  await fastify.register(AutoLoad, {
     dir: join(__dirname, 'plugins'),
     options: opts,
   });
 
-  // This loads all plugins defined in routes
-  // define your routes in one of these
-  // eslint-disable-next-line no-void
-  void fastify.register(AutoLoad, {
-    dir: join(__dirname, 'routes'),
-    options: opts,
-  });
+  // Регистрируем API маршруты с обработкой сессии
+  await fastify.register(require('./routes/api/api'), { prefix: '/api' });
 };
 
 export default app;

@@ -13,13 +13,14 @@ COPY backend/package.json ./backend/
 COPY frontend/package.json ./frontend/
 
 # Установка зависимостей
-RUN pnpm install -r --prefer-offline --no-verify-store-integrity
+RUN pnpm install -r --prefer-offline
 
 # -------------------- Dev для backend --------------------
 FROM base AS backend-dev
 COPY backend ./backend
 WORKDIR /app/backend
-CMD ["pnpm", "run", "start:dev"]
+RUN pnpm install --prefer-offline
+CMD ["pnpm", "run", "dev"]
 
 # -------------------- Prod для backend --------------------
 FROM base AS backend-prod
@@ -27,12 +28,13 @@ COPY backend ./backend
 WORKDIR /app/backend
 RUN pnpm install -r --prefer-offline --no-verify-store-integrity \
   && pnpm run build
-CMD ["node", "dist/app.js"]
+CMD ["node", "dist/server.js"]
 
 # -------------------- Dev для frontend --------------------
 FROM base AS frontend
 COPY frontend ./frontend
 WORKDIR /app/frontend
+RUN pnpm install --prefer-offline
 CMD ["pnpm", "run", "dev"]
 
 # -------------------- Prod для frontend (vite build + nginx) --------------------

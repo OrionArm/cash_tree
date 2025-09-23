@@ -5,6 +5,7 @@
     "resolveJsonModule": false,
     "verbatimModuleSyntax": false,
     "skipLibCheck": true,
+    "esModuleInterop": true,
 
     "declaration": true,
     "removeComments": true,
