@@ -32,6 +32,21 @@
   color: var(--color-gray-700);
 }
 
+.nodeName.deleted {
+  color: var(--color-gray-400);
+  text-decoration: line-through;
+  font-style: italic;
+}
+
+.treeNodeContent.deleted {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.treeNodeContent.deleted:hover {
+  background: transparent;
+}
+
 .children {
   margin-left: 20px;
   border-left: 1px dashed var(--color-border-dashed);

@@ -98,7 +98,6 @@ export class CacheService {
 
     this.markElementAsDeleted(element);
     this.operationService.addDeleteOperation(elementId);
-    this.indexService.removeFromParentIndex(elementId, element.parentId);
     this.indexService.markElementAsDirty(elementId, element.parentId);
     this.invalidateCache();
 

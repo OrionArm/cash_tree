@@ -28,15 +28,34 @@ export const updateCashHandler = async (
       return res.code(400).send(errorResponse);
     }
 
+    const element = cacheService.getElement(elementId);
+    if (!element) {
+      const errorResponse: OperationResultResponse = {
+        success: false,
+        message: 'Элемент не найден в кэше',
+        error: 'ELEMENT_NOT_FOUND',
+      };
+      return res.code(404).send(errorResponse);
+    }
+
+    if (element.isDeleted) {
+      const errorResponse: OperationResultResponse = {
+        success: false,
+        message: 'Элемент удален и не может быть обновлен',
+        error: 'ELEMENT_DELETED',
+      };
+      return res.code(400).send(errorResponse);
+    }
+
     const success = cacheService.updateElement(elementId, value);
 
     if (!success) {
       const errorResponse: OperationResultResponse = {
         success: false,
-        message: 'Элемент не найден в кэше или удален',
-        error: 'ELEMENT_NOT_FOUND_OR_DELETED',
+        message: 'Не удалось обновить элемент',
+        error: 'UPDATE_FAILED',
       };
-      return res.code(404).send(errorResponse);
+      return res.code(500).send(errorResponse);
     }
 
     const updatedElement = cacheService.getElement(elementId);

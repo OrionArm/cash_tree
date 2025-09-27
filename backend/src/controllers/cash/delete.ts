@@ -19,15 +19,34 @@ export const deleteCashHandler = async (
       return res.code(400).send(errorResponse);
     }
 
-    const success = cacheService.deleteElement(elementId);
-
-    if (!success) {
+    const element = cacheService.getElement(elementId);
+    if (!element) {
       const errorResponse: OperationResultResponse = {
         success: false,
         message: 'Элемент не найден в кэше',
         error: 'ELEMENT_NOT_FOUND',
       };
       return res.code(404).send(errorResponse);
+    }
+
+    if (element.isDeleted) {
+      const errorResponse: OperationResultResponse = {
+        success: false,
+        message: 'Элемент уже удален',
+        error: 'ELEMENT_ALREADY_DELETED',
+      };
+      return res.code(400).send(errorResponse);
+    }
+
+    const success = cacheService.deleteElement(elementId);
+
+    if (!success) {
+      const errorResponse: OperationResultResponse = {
+        success: false,
+        message: 'Не удалось удалить элемент',
+        error: 'DELETE_FAILED',
+      };
+      return res.code(500).send(errorResponse);
     }
 
     const successResponse: OperationResultResponse = {

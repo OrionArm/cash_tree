@@ -61,9 +61,8 @@ export const CachedTreeView: React.FC = () => {
       },
       {
         id: 'reset',
-        label: 'Сбросить кэш',
+        label: 'Сбросить',
         icon: '🔄',
-        disabled: cacheNodes.length === 0,
         onClick: resetCacheDataEv,
       },
     ],

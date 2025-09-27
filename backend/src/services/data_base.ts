@@ -1,25 +1,28 @@
 import { TreeNode } from '../dto/types';
-import { elementsList } from './mock';
+import { getInitialElements } from './mock';
 
 const sleep = (ms: number = 1): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
 export class DatabaseService {
   private database: Map<string, TreeNode> = new Map(
-    elementsList.map((element) => [element.id, element]),
+    getInitialElements().map((element) => [element.id, element]),
   );
 
   private buildHierarchy(): Map<string, TreeNode> {
     const elementMap = new Map(
-      Array.from(this.database.values())
-        .filter((el) => !el.isDeleted)
-        .map((el) => [el.id, { ...el, children: [] }]),
+      Array.from(this.database.values()).map((el) => [
+        el.id,
+        { ...el, children: [] },
+      ]),
     );
 
     Array.from(elementMap.values()).forEach((el) => {
       if (el.parentId) {
         const parent = elementMap.get(el.parentId);
-        parent?.children.push(el);
+        if (parent) {
+          parent.children.push(el);
+        }
       }
     });
 
@@ -30,9 +33,7 @@ export class DatabaseService {
     await sleep();
 
     const element = this.database.get(id);
-    if (!element || element.isDeleted) {
-      return null;
-    }
+    if (!element || element.isDeleted) return null;
 
     const elementMap = this.buildHierarchy();
     return elementMap.get(id) || null;
@@ -44,14 +45,6 @@ export class DatabaseService {
     const elementMap = this.buildHierarchy();
     return Array.from(elementMap.values()).filter(
       (element) => element.parentId === null,
-    );
-  }
-
-  async getChildren(parentId: string): Promise<TreeNode[]> {
-    await sleep();
-
-    return Array.from(this.database.values()).filter(
-      (element) => element.parentId === parentId && !element.isDeleted,
     );
   }
 
@@ -99,6 +92,14 @@ export class DatabaseService {
         await this.markElementAsDeleted(child.id);
       }
     }
+  }
+
+  async reset(): Promise<void> {
+    await sleep();
+
+    this.database = new Map(
+      getInitialElements().map((element) => [element.id, element]),
+    );
   }
 }
 

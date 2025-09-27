@@ -405,7 +405,8 @@ test('CacheService - должен корректно обрабатывать з
   const cacheService = createTestCacheService();
   const databaseService = createTestDatabaseService();
 
-  const result = await cacheService.loadElement(databaseService, 'root');
+  // Загружаем элемент A1, который имеет потомков в тестовых данных
+  const result = await cacheService.loadElement(databaseService, 'A1');
 
   assert.strictEqual(result.success, true);
   assert.ok(result.loadedElements);

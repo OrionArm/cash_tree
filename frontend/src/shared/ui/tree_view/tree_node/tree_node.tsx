@@ -20,22 +20,32 @@ export const TreeNodeView: React.FC<Props> = ({ node, level, selectedNodeId, onN
   };
 
   const handleNodeClick = () => {
-    onNodeSelect(node.id);
+    if (!node.isDeleted) {
+      onNodeSelect(node.id);
+    }
   };
 
   const isSelected = selectedNodeId === node.id;
   const hasChildren = node.children.length > 0;
+  const isDeleted = node.isDeleted;
 
   return (
     <div className={styles.treeNode}>
       <div
-        className={clsx(styles.treeNodeContent, { [styles.selected]: isSelected })}
+        className={clsx(styles.treeNodeContent, {
+          [styles.selected]: isSelected,
+          [styles.deleted]: isDeleted,
+        })}
         onClick={handleNodeClick}
         style={{ '--level': level } as React.CSSProperties}
       >
-        {hasChildren && <ToggleButton isExpanded={isExpanded} onClick={handleToggle} />}
-        {!hasChildren && <div className={styles.spacer} />}
-        <span className={styles.nodeName}>{node.value || node.name || 'Unnamed'}</span>
+        {hasChildren && !isDeleted && (
+          <ToggleButton isExpanded={isExpanded} onClick={handleToggle} />
+        )}
+        {(!hasChildren || isDeleted) && <div className={styles.spacer} />}
+        <span className={clsx(styles.nodeName, { [styles.deleted]: isDeleted })}>
+          {node.value || node.name || 'Unnamed'}
+        </span>
       </div>
       {hasChildren && isExpanded && (
         <div className={styles.children}>

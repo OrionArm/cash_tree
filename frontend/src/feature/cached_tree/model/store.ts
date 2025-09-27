@@ -202,15 +202,20 @@ sample({
   clock: removeFromCacheEv,
   source: $cacheStore,
   fn: (cacheNodes, nodeId) => {
-    const removeNode = (nodes: TreeNode[], id: string): TreeNode[] => {
-      return nodes
-        .filter((node) => node.id !== id)
-        .map((node) => ({
+    const markAsDeleted = (nodes: TreeNode[], shouldMark = false): TreeNode[] => {
+      return nodes.map((node) => {
+        const isTargetNode = node.id === nodeId;
+        const markThisNode = shouldMark || isTargetNode;
+
+        return {
           ...node,
-          children: removeNode(node.children, id),
-        }));
+          isDeleted: node.isDeleted || markThisNode,
+          children: markAsDeleted(node.children, markThisNode),
+        };
+      });
     };
-    return removeNode(cacheNodes, nodeId);
+
+    return markAsDeleted(cacheNodes);
   },
   target: $cacheStore,
 });
@@ -248,7 +253,6 @@ sample({
   target: cacheResetFx,
 });
 
-// Сбрасываем локальное состояние при вызове resetCacheData
 sample({
   clock: resetCacheDataEv,
   fn: () => [],
@@ -261,16 +265,9 @@ sample({
   target: $selectedCacheNode,
 });
 
-// При ошибке сброса кэша, восстанавливаем данные с сервера
 sample({
-  clock: cacheResetFx.failData,
-  target: fetchCashDataEv,
-});
-
-// Обновляем операции после сброса кэша
-sample({
-  clock: cacheResetFx.done,
-  target: fetchOperationsEv,
+  clock: [cacheResetFx.done, cacheResetFx.fail],
+  target: fetchDbDataFx,
 });
 
 // ________________________________ Логика модальных окон ________________________________

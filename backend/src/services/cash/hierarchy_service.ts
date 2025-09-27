@@ -69,7 +69,7 @@ export class HierarchyService {
     const result: TreeNode[] = [];
     this.indexService.getRootElements().forEach((id) => {
       const element = cache.get(id);
-      if (element && !element.isDeleted) {
+      if (element) {
         result.push(element);
       }
     });
@@ -101,7 +101,8 @@ export class HierarchyService {
 
     this.indexService.removeFromParentIndex(elementId, null);
     this.indexService.removeFromParentIndex(elementId, element.parentId);
-    cache.delete(elementId);
+    // Помечаем элемент как удаленный вместо физического удаления
+    element.isDeleted = true;
     element.children.forEach((child) => {
       this.removeChain(child.id, cache);
     });

@@ -1,86 +1,6 @@
 import type { TreeNode } from '../dto/types';
 
-// const elements = [
-//   {
-//     id: 'root',
-//     parentId: null,
-//     value: 'Root Element',
-//     isDeleted: false,
-//     children: [
-//       {
-//         id: 'A1',
-//         parentId: 'root',
-//         value: '1 Item 1',
-//         isDeleted: false,
-//         children: [
-//           {
-//             id: 'A2_1',
-//             parentId: 'A1',
-//             value: '2 Item 1',
-//             isDeleted: false,
-//             children: [
-//               {
-//                 id: 'A3',
-//                 parentId: 'A2_1',
-//                 value: '3 Item 1',
-//                 isDeleted: false,
-//                 children: [
-//                   {
-//                     id: 'A4',
-//                     parentId: 'A3',
-//                     value: '4 Item 1',
-//                     isDeleted: false,
-//                     children: [
-//                       {
-//                         id: 'A5',
-//                         parentId: 'A4',
-//                         value: '4 Item 2',
-//                         isDeleted: false,
-//                         children: [],
-//                       },
-//                     ],
-//                   },
-//                 ],
-//               },
-//             ],
-//           },
-//           {
-//             id: 'A2_2',
-//             parentId: 'A1',
-//             value: '2 Item 2',
-//             isDeleted: false,
-//             children: [],
-//           },
-//         ],
-//       },
-//       {
-//         id: 'B1',
-//         parentId: 'root',
-//         value: '1 Item 2',
-//         isDeleted: false,
-//         children: [
-//           {
-//             id: 'B2',
-//             parentId: 'B1',
-//             value: '2 Item 1',
-//             isDeleted: false,
-//             children: [
-//               {
-//                 id: 'B3',
-//                 parentId: 'B2',
-//                 value: '3 Item 1',
-//                 isDeleted: false,
-//                 children: [],
-//               },
-//             ],
-//           },
-//         ],
-//       },
-//     ],
-//   },
-// ];
-
-export const elementsList: TreeNode[] = [
+export const getInitialElements = (): TreeNode[] => [
   {
     id: 'root',
     parentId: null,
@@ -124,6 +44,13 @@ export const elementsList: TreeNode[] = [
     children: [],
   },
   {
+    id: 'A6',
+    parentId: 'A5',
+    value: 'A6',
+    isDeleted: false,
+    children: [],
+  },
+  {
     id: 'A2_2',
     parentId: 'A1',
     value: 'A2_2',
@@ -138,16 +65,51 @@ export const elementsList: TreeNode[] = [
     children: [],
   },
   {
-    id: 'B2',
-    parentId: 'B2',
-    value: '2 Item 1',
+    id: 'B2_1',
+    parentId: 'B1',
+    value: 'B2_1',
     isDeleted: false,
     children: [],
   },
   {
     id: 'B3',
+    parentId: 'B2_1',
+    value: 'B3',
+    isDeleted: false,
+    children: [],
+  },
+  {
+    id: 'B4',
     parentId: 'B3',
-    value: '3 Item 1',
+    value: 'B4',
+    isDeleted: false,
+    children: [],
+  },
+  {
+    id: 'B5',
+    parentId: 'B4',
+    value: 'B5',
+    isDeleted: false,
+    children: [],
+  },
+  {
+    id: 'B2_2',
+    parentId: 'B1',
+    value: 'B2_2',
+    isDeleted: false,
+    children: [],
+  },
+  {
+    id: 'B2_3',
+    parentId: 'B1',
+    value: 'B2_3',
+    isDeleted: false,
+    children: [],
+  },
+  {
+    id: 'B3_1',
+    parentId: 'B2_3',
+    value: 'B3_1',
     isDeleted: false,
     children: [],
   },

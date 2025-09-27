@@ -40,45 +40,19 @@ test('DatabaseService - getTreeStructure - должен вернуть толь�
 
   assert.strictEqual(result.length, 1);
   assert.strictEqual(result[0].id, 'root');
-  assert.strictEqual(result[0].children.length, 2);
+  assert.strictEqual(result[0].children.length, 3);
   assert.ok(result[0].children.some((child) => child.id === 'A1'));
   assert.ok(result[0].children.some((child) => child.id === 'B1'));
+  assert.ok(result[0].children.some((child) => child.id === 'deleted'));
 });
 
-test('DatabaseService - getTreeStructure - не должен включать удаленные элементы', async () => {
+test('DatabaseService - getTreeStructure - должен включать удаленные элементы', async () => {
   const service = createTestDatabaseService();
 
   const result = await service.getTreeStructure();
 
   const allIds = result.flatMap((element) => getAllIds(element));
-  assert.ok(!allIds.includes('deleted'));
-});
-
-test('DatabaseService - getChildren - должен вернуть прямых детей родителя', async () => {
-  const service = createTestDatabaseService();
-
-  const result = await service.getChildren('root');
-
-  assert.strictEqual(result.length, 2);
-  assert.ok(result.some((child) => child.id === 'A1'));
-  assert.ok(result.some((child) => child.id === 'B1'));
-  assert.ok(!result.some((child) => child.id === 'A2_1'));
-});
-
-test('DatabaseService - getChildren - не должен включать удаленные элементы', async () => {
-  const service = createTestDatabaseService();
-
-  const result = await service.getChildren('root');
-
-  assert.ok(!result.some((child) => child.id === 'deleted'));
-});
-
-test('DatabaseService - getChildren - должен вернуть пустой массив для элемента без детей', async () => {
-  const service = createTestDatabaseService();
-
-  const result = await service.getChildren('A5');
-
-  assert.strictEqual(result.length, 0);
+  assert.ok(allIds.includes('deleted'));
 });
 
 test('DatabaseService - createElement - должен создать новый элемент', async () => {
@@ -182,8 +156,9 @@ test('DatabaseService - markElementAsDeleted - не должен влиять н
 
   assert.ok(b1);
   assert.ok(root);
-  assert.strictEqual(root.children.length, 1);
-  assert.strictEqual(root.children[0].id, 'B1');
+  assert.strictEqual(root.children.length, 3);
+  assert.ok(root.children.some((child) => child.id === 'B1'));
+  assert.ok(root.children.some((child) => child.id === 'deleted'));
 });
 
 test('DatabaseService - markElementAsDeleted - не должен влиять на уже удаленный элемент', async () => {
@@ -195,7 +170,7 @@ test('DatabaseService - markElementAsDeleted - не должен влиять н
   // Проверяем, что структура не изменилась
   const root = await service.getElement('root');
   assert.ok(root);
-  assert.strictEqual(root.children.length, 2);
+  assert.strictEqual(root.children.length, 3);
 });
 
 test('DatabaseService - markElementAsDeleted - должен корректно обрабатывать несуществующий элемент', async () => {

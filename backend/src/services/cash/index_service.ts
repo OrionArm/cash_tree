@@ -55,17 +55,12 @@ export class IndexService {
       if (!element) return;
 
       element.children = [];
-
-      if (!element.isDeleted) {
-        const childrenSet = this.parentToChildrenIndex.get(elementId);
-        if (childrenSet) {
-          childrenSet.forEach((childId) => {
-            const child = cache.get(childId);
-            if (child && !child.isDeleted) {
-              element.children.push(child);
-            }
-          });
-        }
+      const childrenSet = this.parentToChildrenIndex.get(elementId);
+      if (childrenSet) {
+        childrenSet.forEach((childId) => {
+          const child = cache.get(childId);
+          if (child) element.children.push(child);
+        });
       }
     });
 
