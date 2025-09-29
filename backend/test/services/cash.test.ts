@@ -7,6 +7,7 @@ import {
   getOperationsCount,
   getOperations,
 } from './test_helpers';
+import { CacheService } from '../../src/services/cash';
 
 // ==================== ТЕСТЫ ДЛЯ getElement ====================
 
@@ -74,6 +75,7 @@ test('CacheService - createElement - должен создать новый эл
   assert.strictEqual(newElement.parentId, null);
   assert.strictEqual(newElement.isDeleted, false);
   assert.strictEqual(newElement.children.length, 0);
+  assert.ok(Array.isArray(newElement.children));
   assert.ok(typeof newElement.id === 'string');
 });
 
@@ -87,6 +89,7 @@ test('CacheService - createElement - должен создать новый эл
   assert.strictEqual(newElement.parentId, 'A1');
   assert.strictEqual(newElement.isDeleted, false);
   assert.strictEqual(newElement.children.length, 0);
+  assert.ok(Array.isArray(newElement.children));
   assert.ok(typeof newElement.id === 'string');
 });
 
@@ -125,6 +128,23 @@ test('CacheService - createElement - должен обновить иерарх�
 
   assert.ok(parent);
   assert.ok(parent.children.some((child) => child.id === newElement.id));
+});
+
+test('CacheService - createElement - созданный элемент должен быть добавлен в кэш без детей', () => {
+  const service = createTestCacheService();
+
+  const newElement = service.createElement('A1', 'New Child Element');
+
+  // Проверяем, что элемент добавлен в кэш
+  const cachedElement = service.getElement(newElement.id);
+  assert.ok(cachedElement);
+
+  // Проверяем, что элемент добавлен без детей
+  assert.strictEqual(cachedElement.children.length, 0);
+  assert.ok(Array.isArray(cachedElement.children));
+  assert.strictEqual(cachedElement.value, 'New Child Element');
+  assert.strictEqual(cachedElement.parentId, 'A1');
+  assert.strictEqual(cachedElement.isDeleted, false);
 });
 
 // ==================== ТЕСТЫ ДЛЯ updateElement ====================
@@ -253,10 +273,13 @@ test('CacheService - loadElement - должен загрузить элемен�
   const result = await cacheService.loadElement(databaseService, 'A1');
 
   assert.strictEqual(result.success, true);
-  assert.ok(result.message.includes('Элемент и'));
-  assert.ok(result.message.includes('потомков успешно загружены в кэш'));
-  assert.ok(result.descendantsCount >= 0);
+  assert.ok(
+    result.message.includes('Элемент уже в кэше') ||
+      result.message.includes('Элемент успешно загружен в кэш'),
+  );
+  assert.strictEqual(result.descendantsCount, 0);
   assert.ok(Array.isArray(result.loadedElements));
+  assert.strictEqual(result.loadedElements.length, 1);
 });
 
 test('CacheService - loadElement - должен вернуть ошибку для несуществующего элемента', async () => {
@@ -271,7 +294,7 @@ test('CacheService - loadElement - должен вернуть ошибку дл
   assert.strictEqual(result.loadedElements?.length, 0);
 });
 
-test('CacheService - loadElement - должен загрузить элемент как корневой элемент кэша', async () => {
+test('CacheService - loadElement - должен загрузить элемент и добавить его в иерархию', async () => {
   const cacheService = createTestCacheService();
   const databaseService = createTestDatabaseService();
 
@@ -279,12 +302,19 @@ test('CacheService - loadElement - должен загрузить элемен�
 
   assert.strictEqual(result.success, true);
   assert.ok(result.loadedElements);
-  assert.ok(result.loadedElements.length > 0);
+  assert.strictEqual(result.loadedElements.length, 1);
 
-  // Первый элемент должен быть загруженным элементом с parentId = null
+  // Элемент должен быть загруженным с оригинальным parentId
   const loadedElement = result.loadedElements[0];
-  assert.strictEqual(loadedElement.parentId, null);
+  assert.strictEqual(loadedElement.parentId, 'root'); // Оригинальный parentId из базы данных
   assert.strictEqual(loadedElement.value, 'A1');
+  assert.strictEqual(loadedElement.children.length, 0);
+  assert.ok(Array.isArray(loadedElement.children));
+
+  // Проверяем, что элемент добавлен в иерархию
+  const rootElement = cacheService.getElement('root');
+  assert.ok(rootElement);
+  assert.ok(rootElement.children.some((child) => child.id === 'A1'));
 });
 
 test('CacheService - loadElement - должен загрузить элемент в кэш', async () => {
@@ -296,7 +326,14 @@ test('CacheService - loadElement - должен загрузить элемен�
   // Проверяем, что элемент теперь доступен в кэше
   const cachedElement = cacheService.getElement('A1');
   assert.ok(cachedElement);
-  assert.strictEqual(cachedElement.parentId, null); // Должен стать корневым в кэше
+  assert.strictEqual(cachedElement.parentId, 'root'); // Оригинальный parentId
+  assert.strictEqual(cachedElement.children.length, 0); // Должен быть без детей
+  assert.ok(Array.isArray(cachedElement.children));
+
+  // Проверяем, что элемент добавлен в иерархию
+  const rootElement = cacheService.getElement('root');
+  assert.ok(rootElement);
+  assert.ok(rootElement.children.some((child) => child.id === 'A1'));
 });
 
 // ==================== ТЕСТЫ ДЛЯ ОПЕРАЦИЙ КЭША ====================
@@ -326,31 +363,6 @@ test('CacheService - getOperations - должен вернуть список в
   assert.strictEqual(operations[0].type, 'create');
   assert.strictEqual(operations[1].type, 'update');
   assert.strictEqual(operations[2].type, 'delete');
-});
-
-test('CacheService - clearOperations - должен очистить список операций', () => {
-  const service = createTestCacheService();
-
-  service.createElement('A1', 'Test Element');
-  service.updateElement('A1', 'Updated Element');
-
-  assert.strictEqual(service.getOperations().length, 2);
-
-  service.clearOperations();
-
-  assert.strictEqual(service.getOperations().length, 0);
-});
-
-test('CacheService - clearOperations - не должен влиять на кэш', () => {
-  const service = createTestCacheService();
-
-  const newElement = service.createElement('A1', 'Test Element');
-  service.clearOperations();
-
-  // Элемент должен остаться в кэше
-  const cachedElement = service.getElement(newElement.id);
-  assert.ok(cachedElement);
-  assert.strictEqual(cachedElement.value, 'Test Element');
 });
 
 test('CacheService - должен корректно обрабатывать множественные операции', () => {
@@ -401,7 +413,7 @@ test('CacheService - должен корректно поддерживать и
   assert.strictEqual(child1Element.children[0].id, grandchild.id);
 });
 
-test('CacheService - должен корректно обрабатывать загрузку элементов с потомками', async () => {
+test('CacheService - должен корректно обрабатывать загрузку элементов без потомков', async () => {
   const cacheService = createTestCacheService();
   const databaseService = createTestDatabaseService();
 
@@ -410,13 +422,16 @@ test('CacheService - должен корректно обрабатывать з
 
   assert.strictEqual(result.success, true);
   assert.ok(result.loadedElements);
-  assert.ok(result.loadedElements.length > 1); // Должен загрузить элемент и его потомков
+  assert.strictEqual(result.loadedElements.length, 1); // Должен загрузить только сам элемент без потомков
 
-  // Проверяем, что все загруженные элементы доступны в кэше
-  result.loadedElements!.forEach((element) => {
-    const cachedElement = cacheService.getElement(element.id);
-    assert.ok(cachedElement);
-  });
+  // Проверяем, что загруженный элемент доступен в кэше
+  const loadedElement = result.loadedElements[0];
+  const cachedElement = cacheService.getElement(loadedElement.id);
+  assert.ok(cachedElement);
+
+  // Проверяем, что элемент загружен без детей
+  assert.strictEqual(cachedElement.children.length, 0);
+  assert.ok(Array.isArray(cachedElement.children));
 });
 
 test('CacheService - loadElement - загруженный элемент должен появиться в getCacheStructure', async () => {
@@ -427,234 +442,218 @@ test('CacheService - loadElement - загруженный элемент дол�
   const initialStructure = cacheService.getCacheStructure();
   assert.strictEqual(initialStructure.length, 0);
 
-  // Загружаем элемент A1 с его потомками
+  // Сначала загружаем элемент root
+  await cacheService.loadElement(databaseService, 'root');
+
+  // Теперь загружаем элемент A1 без его потомков
   const result = await cacheService.loadElement(databaseService, 'A1');
 
   assert.strictEqual(result.success, true);
   assert.ok(result.loadedElements);
-  assert.ok(result.loadedElements.length > 0);
+  assert.strictEqual(result.loadedElements.length, 1);
 
   // Проверяем, что загруженный элемент появился в структуре кэша
   const structure = cacheService.getCacheStructure();
-  assert.strictEqual(structure.length, 1);
+  assert.strictEqual(structure.length, 1); // Только root элемент
 
-  const loadedElement = structure[0];
-  assert.strictEqual(loadedElement.id, 'A1');
-  assert.strictEqual(loadedElement.parentId, null); // Должен стать корневым в кэше
-  assert.strictEqual(loadedElement.value, 'A1');
+  const rootElement = structure[0];
+  assert.strictEqual(rootElement.id, 'root');
+  assert.strictEqual(rootElement.parentId, null);
 
-  // Проверяем, что у загруженного элемента есть потомки
-  assert.ok(loadedElement.children.length > 0);
-
-  // Проверяем, что все потомки также доступны в кэше
-  const checkDescendants = (node: any) => {
-    node.children.forEach((child: any) => {
-      const cachedChild = cacheService.getElement(child.id);
-      assert.ok(cachedChild, `Потомок ${child.id} должен быть доступен в кэше`);
-      checkDescendants(child);
-    });
-  };
-
-  checkDescendants(loadedElement);
+  // Проверяем, что A1 добавлен как дочерний элемент root
+  assert.ok(rootElement.children.some((child) => child.id === 'A1'));
+  const a1Element = rootElement.children.find((child) => child.id === 'A1');
+  assert.ok(a1Element);
+  assert.strictEqual(a1Element.parentId, 'root');
+  assert.strictEqual(a1Element.children.length, 0);
+  assert.ok(Array.isArray(a1Element.children));
 });
 
-test('CacheService - loadElement - должен объединить цепочки при загрузке родителя после дочернего элемента', async () => {
+test('CacheService - loadElement - должен загружать элементы по отдельности без потомков', async () => {
   const cacheService = createTestCacheService();
   const databaseService = createTestDatabaseService();
 
-  // Сначала загружаем A2_1, который должен создать цепочку A2_1 => A3 => A4
+  // Сначала загружаем элемент root
+  await cacheService.loadElement(databaseService, 'root');
+
+  // Затем загружаем A2_1 без потомков
   const result1 = await cacheService.loadElement(databaseService, 'A2_1');
 
   assert.strictEqual(result1.success, true);
   assert.ok(result1.loadedElements);
-  assert.ok(result1.loadedElements.length >= 3); // A2_1, A3, A4
+  assert.strictEqual(result1.loadedElements.length, 1); // Только A2_1
 
-  // Проверяем, что в кэше есть только одна корневая цепочка A2_1 => A3 => A4
+  // Проверяем, что A2_1 загружен с правильным parentId
+  const a2_1 = cacheService.getElement('A2_1');
+  assert.ok(a2_1);
+  assert.strictEqual(a2_1.parentId, 'A1'); // Оригинальный parentId
+  assert.strictEqual(a2_1.children.length, 0);
+  assert.ok(Array.isArray(a2_1.children));
+
+  // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure1 = cacheService.getCacheStructure();
   assert.strictEqual(structure1.length, 1);
-  assert.strictEqual(structure1[0].id, 'A2_1');
-  assert.strictEqual(structure1[0].parentId, null);
+  assert.strictEqual(structure1[0].id, 'root');
 
-  // Проверяем, что цепочка A2_1 => A3 => A4 существует
-  const a2_1 = cacheService.getElement('A2_1');
-  const a3 = cacheService.getElement('A3');
-  const a4 = cacheService.getElement('A4');
-
-  assert.ok(a2_1);
-  assert.ok(a3);
-  assert.ok(a4);
-  assert.strictEqual(a2_1.parentId, null);
-  assert.strictEqual(a3.parentId, 'A2_1');
-  assert.strictEqual(a4.parentId, 'A3');
-
-  // Теперь загружаем родителя A1, который должен объединить цепочки
+  // Теперь загружаем родителя A1 без потомков
   const result2 = await cacheService.loadElement(databaseService, 'A1');
 
   assert.strictEqual(result2.success, true);
   assert.ok(result2.loadedElements);
-  assert.ok(result2.loadedElements.length >= 4); // A1, A2_1, A3, A4
+  assert.strictEqual(result2.loadedElements.length, 1); // Только A1
 
-  // Проверяем, что в кэше теперь есть только одна корневая цепочка A1 => A2_1 => A3 => A4
+  // Проверяем, что A1 загружен с правильным parentId
+  const a1 = cacheService.getElement('A1');
+  assert.ok(a1);
+  assert.strictEqual(a1.parentId, 'root'); // Оригинальный parentId
+  assert.ok(Array.isArray(a1.children));
+
+  // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure2 = cacheService.getCacheStructure();
   assert.strictEqual(structure2.length, 1);
-  assert.strictEqual(structure2[0].id, 'A1');
-  assert.strictEqual(structure2[0].parentId, null);
+  assert.strictEqual(structure2[0].id, 'root');
 
-  // Проверяем, что цепочка A1 => A2_1 => A3 => A4 существует
-  const a1 = cacheService.getElement('A1');
-  const a2_1_updated = cacheService.getElement('A2_1');
-  const a3_updated = cacheService.getElement('A3');
-  const a4_updated = cacheService.getElement('A4');
-
-  assert.ok(a1);
-  assert.ok(a2_1_updated);
-  assert.ok(a3_updated);
-  assert.ok(a4_updated);
-
-  // Проверяем правильную иерархию
-  assert.strictEqual(a1.parentId, null);
-  assert.strictEqual(a2_1_updated.parentId, 'A1');
-  assert.strictEqual(a3_updated.parentId, 'A2_1');
-  assert.strictEqual(a4_updated.parentId, 'A3');
-
-  // Проверяем, что A1 имеет A2_1 как дочерний элемент
-  assert.ok(a1.children.some((child) => child.id === 'A2_1'));
-
-  // Проверяем, что A2_1 имеет A3 как дочерний элемент
-  assert.ok(a2_1_updated.children.some((child) => child.id === 'A3'));
-
-  // Проверяем, что A3 имеет A4 как дочерний элемент
-  assert.ok(a3_updated.children.some((child) => child.id === 'A4'));
+  // Проверяем, что A1 добавлен как дочерний элемент root
+  const rootElement = cacheService.getElement('root');
+  assert.ok(rootElement);
+  assert.ok(rootElement.children.some((child) => child.id === 'A1'));
 });
 
-test('CacheService - loadElement - должен объединить цепочки для B2 -> B1', async () => {
+test('CacheService - loadElement - должен загружать B2 и B1 по отдельности без потомков', async () => {
   const cacheService = createTestCacheService();
   const databaseService = createTestDatabaseService();
 
-  // Сначала загружаем B2, который должен создать цепочку B2 => B3
+  // Сначала загружаем элемент root
+  await cacheService.loadElement(databaseService, 'root');
+
+  // Затем загружаем B2 без потомков
   const result1 = await cacheService.loadElement(databaseService, 'B2');
 
   assert.strictEqual(result1.success, true);
   assert.ok(result1.loadedElements);
-  assert.ok(result1.loadedElements.length >= 2); // B2, B3
+  assert.strictEqual(result1.loadedElements.length, 1); // Только B2
 
-  // Проверяем, что в кэше есть только одна корневая цепочка B2 => B3
+  // Проверяем, что B2 загружен с правильным parentId
+  const b2 = cacheService.getElement('B2');
+  assert.ok(b2);
+  assert.strictEqual(b2.parentId, 'B1'); // Оригинальный parentId
+  assert.strictEqual(b2.children.length, 0);
+  assert.ok(Array.isArray(b2.children));
+
+  // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure1 = cacheService.getCacheStructure();
   assert.strictEqual(structure1.length, 1);
-  assert.strictEqual(structure1[0].id, 'B2');
-  assert.strictEqual(structure1[0].parentId, null);
+  assert.strictEqual(structure1[0].id, 'root');
 
-  // Проверяем, что цепочка B2 => B3 существует
-  const b2 = cacheService.getElement('B2');
-  const b3 = cacheService.getElement('B3');
-
-  assert.ok(b2);
-  assert.ok(b3);
-  assert.strictEqual(b2.parentId, null);
-  assert.strictEqual(b3.parentId, 'B2');
-
-  // Теперь загружаем родителя B1, который должен объединить цепочки
+  // Теперь загружаем родителя B1 без потомков
   const result2 = await cacheService.loadElement(databaseService, 'B1');
 
   assert.strictEqual(result2.success, true);
   assert.ok(result2.loadedElements);
-  assert.ok(result2.loadedElements.length >= 3); // B1, B2, B3
+  assert.strictEqual(result2.loadedElements.length, 1); // Только B1
 
-  // Проверяем, что в кэше теперь есть только одна корневая цепочка B1 => B2 => B3
+  // Проверяем, что B1 загружен с правильным parentId
+  const b1 = cacheService.getElement('B1');
+  assert.ok(b1);
+  assert.strictEqual(b1.parentId, 'root'); // Оригинальный parentId
+  assert.ok(Array.isArray(b1.children));
+
+  // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure2 = cacheService.getCacheStructure();
   assert.strictEqual(structure2.length, 1);
-  assert.strictEqual(structure2[0].id, 'B1');
-  assert.strictEqual(structure2[0].parentId, null);
+  assert.strictEqual(structure2[0].id, 'root');
 
-  // Проверяем, что цепочка B1 => B2 => B3 существует
-  const b1 = cacheService.getElement('B1');
-  const b2_updated = cacheService.getElement('B2');
-  const b3_updated = cacheService.getElement('B3');
-
-  assert.ok(b1);
-  assert.ok(b2_updated);
-  assert.ok(b3_updated);
-
-  // Проверяем правильную иерархию
-  assert.strictEqual(b1.parentId, null);
-  assert.strictEqual(b2_updated.parentId, 'B1');
-  assert.strictEqual(b3_updated.parentId, 'B2');
-
-  // Проверяем, что B1 имеет B2 как дочерний элемент
-  assert.ok(b1.children.some((child) => child.id === 'B2'));
-
-  // Проверяем, что B2 имеет B3 как дочерний элемент
-  assert.ok(b2_updated.children.some((child) => child.id === 'B3'));
+  // Проверяем, что B1 добавлен как дочерний элемент root
+  const rootElement = cacheService.getElement('root');
+  assert.ok(rootElement);
+  assert.ok(rootElement.children.some((child) => child.id === 'B1'));
 });
 
-test('CacheService - loadElement - не должен изменять структуру при загрузке элемента, который уже в цепочке', async () => {
+test('CacheService - loadElement - должен загружать элементы независимо друг от друга', async () => {
   const cacheService = createTestCacheService();
   const databaseService = createTestDatabaseService();
 
-  // Сначала загружаем A2_1, который должен создать цепочку A2_1 => A3 => A4 => A5
+  // Сначала загружаем элемент root
+  await cacheService.loadElement(databaseService, 'root');
+
+  // Затем загружаем A2_1 без потомков
   const result1 = await cacheService.loadElement(databaseService, 'A2_1');
 
   assert.strictEqual(result1.success, true);
   assert.ok(result1.loadedElements);
-  assert.ok(result1.loadedElements.length >= 4); // A2_1, A3, A4, A5
+  assert.strictEqual(result1.loadedElements.length, 1); // Только A2_1
 
-  // Проверяем, что в кэше есть только одна корневая цепочка A2_1 => A3 => A4 => A5
+  // Проверяем, что A2_1 загружен с правильным parentId
+  const a2_1 = cacheService.getElement('A2_1');
+  assert.ok(a2_1);
+  assert.strictEqual(a2_1.parentId, 'A1'); // Оригинальный parentId
+  assert.strictEqual(a2_1.children.length, 0);
+  assert.ok(Array.isArray(a2_1.children));
+
+  // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure1 = cacheService.getCacheStructure();
   assert.strictEqual(structure1.length, 1);
-  assert.strictEqual(structure1[0].id, 'A2_1');
-  assert.strictEqual(structure1[0].parentId, null);
+  assert.strictEqual(structure1[0].id, 'root');
 
-  // Проверяем, что цепочка A2_1 => A3 => A4 => A5 существует
-  const a2_1 = cacheService.getElement('A2_1');
-  const a3 = cacheService.getElement('A3');
-  const a4 = cacheService.getElement('A4');
-  const a5 = cacheService.getElement('A5');
-
-  assert.ok(a2_1);
-  assert.ok(a3);
-  assert.ok(a4);
-  assert.ok(a5);
-  assert.strictEqual(a2_1.parentId, null);
-  assert.strictEqual(a3.parentId, 'A2_1');
-  assert.strictEqual(a4.parentId, 'A3');
-  assert.strictEqual(a5.parentId, 'A4');
-
-  // Теперь загружаем A3, который уже является частью цепочки
+  // Теперь загружаем A3 без потомков
   const result2 = await cacheService.loadElement(databaseService, 'A3');
 
   assert.strictEqual(result2.success, true);
   assert.ok(result2.loadedElements);
-  assert.ok(result2.loadedElements.length >= 3); // A3, A4, A5
+  assert.strictEqual(result2.loadedElements.length, 1); // Только A3
 
-  // Проверяем, что структура кэша НЕ изменилась - должна остаться одна корневая цепочка
+  // Проверяем, что A3 загружен с правильным parentId
+  const a3 = cacheService.getElement('A3');
+  assert.ok(a3);
+  assert.strictEqual(a3.parentId, 'A2_1'); // Оригинальный parentId
+  assert.strictEqual(a3.children.length, 0);
+  assert.ok(Array.isArray(a3.children));
+
+  // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure2 = cacheService.getCacheStructure();
   assert.strictEqual(structure2.length, 1);
-  assert.strictEqual(structure2[0].id, 'A2_1');
-  assert.strictEqual(structure2[0].parentId, null);
+  assert.strictEqual(structure2[0].id, 'root');
 
-  // Проверяем, что цепочка A2_1 => A3 => A4 => A5 по-прежнему существует
+  // Проверяем, что A2_1 остался без изменений
   const a2_1_updated = cacheService.getElement('A2_1');
-  const a3_updated = cacheService.getElement('A3');
-  const a4_updated = cacheService.getElement('A4');
-  const a5_updated = cacheService.getElement('A5');
-
   assert.ok(a2_1_updated);
-  assert.ok(a3_updated);
-  assert.ok(a4_updated);
-  assert.ok(a5_updated);
+  assert.strictEqual(a2_1_updated.parentId, 'A1');
+  assert.ok(Array.isArray(a2_1_updated.children));
+});
 
-  // Проверяем, что иерархия не изменилась
-  assert.strictEqual(a2_1_updated.parentId, null);
-  assert.strictEqual(a3_updated.parentId, 'A2_1'); // A3 остается дочерним элементом A2_1
-  assert.strictEqual(a4_updated.parentId, 'A3');
-  assert.strictEqual(a5_updated.parentId, 'A4');
+test('CacheService - loadElement - должен переместить ранее загруженный элемент в иерархию при загрузке родителя', async () => {
+  const cacheService = new CacheService();
+  const databaseService = createTestDatabaseService();
 
-  // Проверяем, что A2_1 имеет A3 как дочерний элемент
-  assert.ok(a2_1_updated.children.some((child) => child.id === 'A3'));
+  // Сначала загружаем дочерний элемент A2_1 (родитель A1 не загружен)
+  const result1 = await cacheService.loadElement(databaseService, 'A2_1');
+  assert.strictEqual(result1.success, true);
 
-  // Проверяем, что A3 имеет A4 как дочерний элемент
-  assert.ok(a3_updated.children.some((child) => child.id === 'A4'));
+  // Проверяем, что A2_1 стал корневым элементом (но сохраняет оригинальный parentId)
+  const structure1 = cacheService.getCacheStructure();
+  assert.strictEqual(structure1.length, 1);
+  assert.strictEqual(structure1[0].id, 'A2_1');
 
-  // Проверяем, что A4 имеет A5 как дочерний элемент
-  assert.ok(a4_updated.children.some((child) => child.id === 'A5'));
+  const a2_1_before = cacheService.getElement('A2_1');
+  assert.ok(a2_1_before);
+  assert.strictEqual(a2_1_before.parentId, 'A1'); // Сохраняет оригинальный parentId
+
+  // Теперь загружаем родительский элемент A1
+  const result2 = await cacheService.loadElement(databaseService, 'A1');
+  assert.strictEqual(result2.success, true);
+
+  // Проверяем, что A1 стал корневым элементом
+  const structure2 = cacheService.getCacheStructure();
+  assert.strictEqual(structure2.length, 1);
+  assert.strictEqual(structure2[0].id, 'A1');
+
+  // Проверяем, что A2_1 теперь является дочерним элементом A1
+  const a1 = cacheService.getElement('A1');
+  assert.ok(a1);
+  assert.strictEqual(a1.children.length, 1);
+  assert.strictEqual(a1.children[0].id, 'A2_1');
+
+  const a2_1_after = cacheService.getElement('A2_1');
+  assert.ok(a2_1_after);
+  assert.strictEqual(a2_1_after.parentId, 'A1'); // Теперь родитель A1
 });

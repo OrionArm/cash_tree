@@ -4,7 +4,6 @@ import { v4 } from 'uuid';
 import { ValidationService } from './validation_service';
 import { IndexService } from './index_service';
 import { OperationService, CacheOperation } from './operation_service';
-import { HierarchyService } from './hierarchy_service';
 import { CacheLoaderService, CacheLoadResult } from './cache_loader_service';
 import { ApplyChangesResponse } from '../../dto/response/note';
 
@@ -17,18 +16,13 @@ export class CacheService {
   private cache: Map<string, TreeNode> = new Map();
   private indexService: IndexService;
   private operationService: OperationService;
-  private hierarchyService: HierarchyService;
   private cacheLoaderService: CacheLoaderService;
   private cachedStructure: TreeNode[] | null = null;
 
   constructor() {
     this.indexService = new IndexService();
     this.operationService = new OperationService();
-    this.hierarchyService = new HierarchyService(this.indexService);
-    this.cacheLoaderService = new CacheLoaderService(
-      this.indexService,
-      this.hierarchyService,
-    );
+    this.cacheLoaderService = new CacheLoaderService();
 
     this.initializeIndexes();
   }
@@ -50,9 +44,7 @@ export class CacheService {
       return this.cachedStructure;
     }
 
-    this.cachedStructure = this.hierarchyService.buildCacheStructure(
-      this.cache,
-    );
+    this.cachedStructure = this.buildCacheStructure();
     return this.cachedStructure;
   }
 
@@ -114,6 +106,36 @@ export class CacheService {
       this.cache,
     );
 
+    if (
+      result.success &&
+      result.loadedElements &&
+      result.loadedElements.length > 0
+    ) {
+      // Обновляем элемент в кэше и индекс
+      const loadedElement = result.loadedElements[0];
+      this.cache.set(loadedElement.id, loadedElement);
+      this.updateElementIndexes(loadedElement.id, loadedElement.parentId);
+
+      // Если у элемента есть родитель, добавляем его в children родителя
+      if (loadedElement.parentId) {
+        const parent = this.cache.get(loadedElement.parentId);
+        if (
+          parent &&
+          !parent.children.some((child) => child.id === loadedElement.id)
+        ) {
+          parent.children.push(loadedElement);
+        } else {
+          // Если родитель не загружен в кэш, делаем элемент корневым, но сохраняем оригинальный parentId
+          // Оригинальный parentId уже сохранен в loadedElement.parentId из базы данных
+          // Обновляем индекс для корневого элемента
+          this.updateElementIndexes(loadedElement.id, null);
+        }
+      }
+
+      // Ищем элементы в кэше, которые должны стать дочерними для загруженного элемента
+      this.moveExistingChildrenToParent(loadedElement);
+    }
+
     this.invalidateCache();
     return result;
   }
@@ -129,10 +151,6 @@ export class CacheService {
     return this.operationService.getOperations();
   }
 
-  clearOperations(): void {
-    this.operationService.clearOperations();
-  }
-
   async applyOperations(
     databaseService: DatabaseService,
   ): Promise<ApplyChangesResponse> {
@@ -144,7 +162,7 @@ export class CacheService {
 
     // Очищаем операции только если все операции были успешно применены
     if (result.success) {
-      this.clearOperations();
+      this.operationService.clearOperations();
     }
 
     return result;
@@ -158,18 +176,64 @@ export class CacheService {
 
   private addElementToCache(element: TreeNode): void {
     this.cache.set(element.id, element);
-    this.indexService.addToParentIndex(element.id, element.parentId);
-    this.indexService.markElementAsDirty(element.id, element.parentId);
+    this.updateElementIndexes(element.id, element.parentId);
+
+    // Если у элемента есть родитель, добавляем его в children родителя
+    if (element.parentId) {
+      const parent = this.cache.get(element.parentId);
+      if (parent && !parent.children.some((child) => child.id === element.id)) {
+        parent.children.push(element);
+      }
+    }
 
     if (element.children && element.children.length > 0) {
       element.children.forEach((child) => {
         if (!this.cache.has(child.id)) {
           this.cache.set(child.id, child);
-          this.indexService.addToParentIndex(child.id, child.parentId);
-          this.indexService.markElementAsDirty(child.id, child.parentId);
+          this.updateElementIndexes(child.id, child.parentId);
         }
       });
     }
+  }
+
+  private moveExistingChildrenToParent(parentElement: TreeNode): void {
+    // Ищем только корневые элементы в кэше, которые имеют parentId равный id загруженного элемента
+    const childrenToMove: TreeNode[] = [];
+
+    for (const [elementId, element] of Array.from(this.cache.entries())) {
+      if (
+        element.parentId === parentElement.id &&
+        element.id !== parentElement.id &&
+        this.indexService.isRootElement(element.id)
+      ) {
+        childrenToMove.push(element);
+      }
+    }
+
+    // Перемещаем найденные элементы
+    childrenToMove.forEach((child) => {
+      // Удаляем из корневых элементов
+      this.indexService.removeFromParentIndex(child.id, null);
+
+      // Обновляем parentId
+      child.parentId = parentElement.id;
+
+      // Добавляем к новому родителю
+      this.updateElementIndexes(child.id, parentElement.id);
+
+      // Добавляем в children родителя, если еще не добавлен
+      if (!parentElement.children.some((c) => c.id === child.id)) {
+        parentElement.children.push(child);
+      }
+    });
+  }
+
+  private updateElementIndexes(
+    elementId: string,
+    parentId: string | null,
+  ): void {
+    this.indexService.addToParentIndex(elementId, parentId);
+    this.indexService.markElementAsDirty(elementId, parentId);
   }
 
   private invalidateCache(): void {
@@ -180,6 +244,17 @@ export class CacheService {
   private markElementAsDeleted(element: TreeNode): void {
     element.isDeleted = true;
     element.children.forEach((child) => this.markElementAsDeleted(child));
+  }
+
+  private buildCacheStructure(): TreeNode[] {
+    const result: TreeNode[] = [];
+    this.indexService.getRootElements().forEach((id) => {
+      const element = this.cache.get(id);
+      if (element) {
+        result.push(element);
+      }
+    });
+    return result;
   }
 }
 
