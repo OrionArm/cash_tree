@@ -1,6 +1,5 @@
 import { TreeNode } from '../../dto/types';
 import { DatabaseService } from '../data_base';
-import { IndexService } from './index_service';
 import { ValidationService } from './validation_service';
 import { CacheOperation } from './operation_service';
 import { ApplyChangesResponse } from '../../dto/response/note';

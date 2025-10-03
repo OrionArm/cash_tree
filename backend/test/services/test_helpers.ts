@@ -2,6 +2,7 @@ import { DatabaseService } from '../../src/services/data_base';
 import { CacheService } from '../../src/services/cash';
 import type { TreeNode } from '../../src/dto/types';
 import { createTestData } from './test_data';
+import * as assert from 'node:assert';
 
 // Хелпер для создания нового экземпляра DatabaseService с тестовыми данными
 export const createTestDatabaseService = (
@@ -78,3 +79,55 @@ export const getOperationsCount = (service: CacheService): number => {
 export const getOperations = (service: CacheService): any[] => {
   return service.getOperations();
 };
+
+export function checkChainElements(
+  structure: any[],
+  expectedElements: string[],
+  shouldBeDeleted: boolean = false,
+  context: string = 'структуре',
+): void {
+  const allElements = new Set<string>();
+
+  function collectElementIds(element: any) {
+    allElements.add(element.id);
+    if (element.children) {
+      element.children.forEach(collectElementIds);
+    }
+  }
+
+  structure.forEach(collectElementIds);
+
+  // Проверяем что все элементы присутствуют
+  expectedElements.forEach((elementId) => {
+    assert.ok(
+      allElements.has(elementId),
+      `Элемент ${elementId} должен быть в ${context}`,
+    );
+  });
+
+  // Проверяем флаг isDeleted
+  function checkElementIsDeleted(element: any) {
+    assert.strictEqual(
+      element.isDeleted,
+      shouldBeDeleted,
+      `Элемент ${element.id} должен быть ${shouldBeDeleted ? 'помечен как удаленный' : 'не удален'} в ${context}`,
+    );
+  }
+
+  function findAndCheckElement(rootElements: any[], elementId: string) {
+    for (const element of rootElements) {
+      if (element.id === elementId) {
+        checkElementIsDeleted(element);
+        return;
+      }
+      if (element.children) {
+        findAndCheckElement(element.children, elementId);
+      }
+    }
+  }
+
+  // Проверяем флаги для всех элементов
+  expectedElements.forEach((elementId) => {
+    findAndCheckElement(structure, elementId);
+  });
+}

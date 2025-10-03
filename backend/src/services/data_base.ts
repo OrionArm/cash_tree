@@ -55,11 +55,19 @@ export class DatabaseService {
   ): Promise<TreeNode> {
     await sleep();
 
+    let isDeleted = false;
+    if (parentId) {
+      const parent = this.database.get(parentId);
+      if (parent && parent.isDeleted) {
+        isDeleted = true;
+      }
+    }
+
     const newElement: TreeNode = {
       id,
       parentId,
       value,
-      isDeleted: false,
+      isDeleted,
       children: [],
     };
 

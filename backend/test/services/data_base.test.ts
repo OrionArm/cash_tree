@@ -40,19 +40,21 @@ test('DatabaseService - getTreeStructure - должен вернуть толь�
 
   assert.strictEqual(result.length, 1);
   assert.strictEqual(result[0].id, 'root');
-  assert.strictEqual(result[0].children.length, 3);
+  assert.strictEqual(result[0].children.length, 2);
   assert.ok(result[0].children.some((child) => child.id === 'A1'));
   assert.ok(result[0].children.some((child) => child.id === 'B1'));
-  assert.ok(result[0].children.some((child) => child.id === 'deleted'));
 });
 
 test('DatabaseService - getTreeStructure - должен включать удаленные элементы', async () => {
   const service = createTestDatabaseService();
 
+  // Сначала удаляем элемент A1
+  await service.markElementAsDeleted('A1');
+
   const result = await service.getTreeStructure();
 
   const allIds = result.flatMap((element) => getAllIds(element));
-  assert.ok(allIds.includes('deleted'));
+  assert.ok(allIds.includes('A1')); // A1 должен быть в структуре, но помечен как удаленный
 });
 
 test('DatabaseService - createElement - должен создать новый элемент', async () => {
@@ -156,21 +158,24 @@ test('DatabaseService - markElementAsDeleted - не должен влиять н
 
   assert.ok(b1);
   assert.ok(root);
-  assert.strictEqual(root.children.length, 3);
+  assert.strictEqual(root.children.length, 2); // A1 (удаленный) и B1
   assert.ok(root.children.some((child) => child.id === 'B1'));
-  assert.ok(root.children.some((child) => child.id === 'deleted'));
+  assert.ok(root.children.some((child) => child.id === 'A1')); // A1 должен остаться, но помечен как удаленный
 });
 
 test('DatabaseService - markElementAsDeleted - не должен влиять на уже удаленный элемент', async () => {
   const service = createTestDatabaseService();
 
+  // Сначала удаляем элемент A1
+  await service.markElementAsDeleted('A1');
+
   // Попытка удалить уже удаленный элемент
-  await service.markElementAsDeleted('deleted');
+  await service.markElementAsDeleted('A1');
 
   // Проверяем, что структура не изменилась
   const root = await service.getElement('root');
   assert.ok(root);
-  assert.strictEqual(root.children.length, 3);
+  assert.strictEqual(root.children.length, 2); // A1 (удаленный) и B1
 });
 
 test('DatabaseService - markElementAsDeleted - должен корректно обрабатывать несуществующий элемент', async () => {
