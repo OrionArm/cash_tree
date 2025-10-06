@@ -33,10 +33,13 @@ export class DatabaseService {
     await sleep();
 
     const element = this.database.get(id);
-    if (!element || element.isDeleted) return null;
+    if (!element) return null;
 
-    const elementMap = this.buildHierarchy();
-    return elementMap.get(id) || null;
+    // Возвращаем элемент без детей
+    return {
+      ...element,
+      children: [],
+    };
   }
 
   async getTreeStructure(): Promise<TreeNode[]> {

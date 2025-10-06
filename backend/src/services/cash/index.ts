@@ -88,7 +88,7 @@ export class CacheService {
     const element = this.cache.get(elementId);
     if (!ValidationService.isElementValidAndNotDeleted(element)) return false;
 
-    this.markElementAsDeleted(element);
+    this.markElementAndChildAsDeleted(element);
     this.operationService.addDeleteOperation(elementId);
     this.indexService.markElementAsDirty(elementId, element.parentId);
     this.invalidateCache();
@@ -116,14 +116,12 @@ export class CacheService {
       this.cache.set(loadedElement.id, loadedElement);
       this.updateElementIndexes(loadedElement.id, loadedElement.parentId);
 
+      // Этап 1: Прикрепляем загружаемый элемент к родителю
       // Если у элемента есть родитель, добавляем его в children родителя
       if (loadedElement.parentId) {
         const parent = this.cache.get(loadedElement.parentId);
-        if (
-          parent &&
-          !parent.children.some((child) => child.id === loadedElement.id)
-        ) {
-          parent.children.push(loadedElement);
+        if (parent) {
+          this.addChildToParent(parent, loadedElement);
         } else {
           // Если родитель не загружен в кэш, делаем элемент корневым, но сохраняем оригинальный parentId
           // Оригинальный parentId уже сохранен в loadedElement.parentId из базы данных
@@ -132,6 +130,7 @@ export class CacheService {
         }
       }
 
+      // Этап 2: Обрабатываем существующих детей в кэше
       // Ищем элементы в кэше, которые должны стать дочерними для загруженного элемента
       this.moveExistingChildrenToParent(loadedElement);
     }
@@ -181,9 +180,7 @@ export class CacheService {
     // Если у элемента есть родитель, добавляем его в children родителя
     if (element.parentId) {
       const parent = this.cache.get(element.parentId);
-      if (parent && !parent.children.some((child) => child.id === element.id)) {
-        parent.children.push(element);
-      }
+      if (parent) this.addChildToParent(parent, element);
     }
 
     if (element.children && element.children.length > 0) {
@@ -200,7 +197,7 @@ export class CacheService {
     // Ищем только корневые элементы в кэше, которые имеют parentId равный id загруженного элемента
     const childrenToMove: TreeNode[] = [];
 
-    for (const [elementId, element] of Array.from(this.cache.entries())) {
+    for (const [_elementId, element] of Array.from(this.cache.entries())) {
       if (
         element.parentId === parentElement.id &&
         element.id !== parentElement.id &&
@@ -215,16 +212,11 @@ export class CacheService {
       // Удаляем из корневых элементов
       this.indexService.removeFromParentIndex(child.id, null);
 
-      // Обновляем parentId
-      child.parentId = parentElement.id;
-
       // Добавляем к новому родителю
       this.updateElementIndexes(child.id, parentElement.id);
 
-      // Добавляем в children родителя, если еще не добавлен
-      if (!parentElement.children.some((c) => c.id === child.id)) {
-        parentElement.children.push(child);
-      }
+      // 3. Добавляем существующих детей к загружаемому элементу
+      this.addChildToParent(parentElement, child);
     });
   }
 
@@ -236,14 +228,36 @@ export class CacheService {
     this.indexService.markElementAsDirty(elementId, parentId);
   }
 
+  private addChildToParent(
+    parent: TreeNode,
+    child: TreeNode,
+    skipDuplicateCheck: boolean = false,
+  ): void {
+    const shouldAdd =
+      skipDuplicateCheck ||
+      !parent.children.some((existingChild) => existingChild.id === child.id);
+
+    if (shouldAdd) {
+      parent.children.push(child);
+    }
+
+    // Если родитель удален, помечаем дочерний элемент как удаленный
+    // независимо от того, добавляли ли мы его в children
+    if (parent.isDeleted) {
+      this.markElementAndChildAsDeleted(child);
+    }
+  }
+
   private invalidateCache(): void {
     this.cachedStructure = null;
     this.indexService.rebuildHierarchy(this.cache);
   }
 
-  private markElementAsDeleted(element: TreeNode): void {
+  private markElementAndChildAsDeleted(element: TreeNode): void {
     element.isDeleted = true;
-    element.children.forEach((child) => this.markElementAsDeleted(child));
+    element.children.forEach((child) =>
+      this.markElementAndChildAsDeleted(child),
+    );
   }
 
   private buildCacheStructure(): TreeNode[] {

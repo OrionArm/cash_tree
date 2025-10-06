@@ -38,38 +38,6 @@ export const getAllIds = (node: TreeNode): string[] => {
   return ids;
 };
 
-// Хелпер для создания простого элемента для тестов
-export const createSimpleElement = (
-  id: string,
-  parentId: string | null,
-  value: string,
-  isDeleted: boolean = false,
-): TreeNode => ({
-  id,
-  parentId,
-  value,
-  isDeleted,
-  children: [],
-});
-
-// Хелпер для проверки, что элемент находится в кэше
-export const isElementInCache = (
-  service: CacheService,
-  elementId: string,
-): boolean => {
-  const element = service.getElement(elementId);
-  return element !== null;
-};
-
-// Хелпер для проверки, что элемент находится в базе данных
-export const isElementInDatabase = (
-  service: DatabaseService,
-  elementId: string,
-): boolean => {
-  const element = service.getElement(elementId);
-  return element !== null;
-};
-
 // Хелпер для подсчета операций в CacheService
 export const getOperationsCount = (service: CacheService): number => {
   return service.getOperations().length;
@@ -80,8 +48,21 @@ export const getOperations = (service: CacheService): any[] => {
   return service.getOperations();
 };
 
+// Проверяем флаг isDeleted
+export function checkElementIsDeleted(
+  element: any,
+  shouldBeDeleted: boolean,
+  context: string,
+) {
+  assert.strictEqual(
+    element.isDeleted,
+    shouldBeDeleted,
+    `Элемент ${element.id} должен быть ${shouldBeDeleted ? 'помечен как удаленный' : 'не удален'} в ${context}`,
+  );
+}
+
 export function checkChainElements(
-  structure: any[],
+  structure: TreeNode[],
   expectedElements: string[],
   shouldBeDeleted: boolean = false,
   context: string = 'структуре',
@@ -105,19 +86,10 @@ export function checkChainElements(
     );
   });
 
-  // Проверяем флаг isDeleted
-  function checkElementIsDeleted(element: any) {
-    assert.strictEqual(
-      element.isDeleted,
-      shouldBeDeleted,
-      `Элемент ${element.id} должен быть ${shouldBeDeleted ? 'помечен как удаленный' : 'не удален'} в ${context}`,
-    );
-  }
-
   function findAndCheckElement(rootElements: any[], elementId: string) {
     for (const element of rootElements) {
       if (element.id === elementId) {
-        checkElementIsDeleted(element);
+        checkElementIsDeleted(element, shouldBeDeleted, context);
         return;
       }
       if (element.children) {

@@ -685,3 +685,87 @@ test('CacheService - комплексный тест с загрузкой, со
   const expectedDbElements = ['A1', node1.id, node11.id];
   checkChainElements(dbStructure, expectedDbElements, true, 'базе данных');
 });
+
+test('CacheService - добавляем потомка к удаленному элементу', async () => {
+  const cacheService = new CacheService();
+  const databaseService = createTestDatabaseService();
+
+  // 1) Загрузить A3
+  const loadA6Result = await cacheService.loadElement(databaseService, 'A3');
+  assert.strictEqual(loadA6Result.success, true);
+  // 2) Удалить A3
+  cacheService.deleteElement('A3');
+
+  // 2) Добавляем потомка
+  const loadA4Result = await cacheService.loadElement(databaseService, 'A4');
+  assert.strictEqual(loadA4Result.success, true);
+
+  // 8) Проверяем элементы в структуре кэша
+  const cacheStructure = cacheService.getCacheStructure();
+  const expectedCacheElements = ['A3', 'A4'];
+  checkChainElements(
+    cacheStructure,
+    expectedCacheElements,
+    true,
+    'структуре кэша',
+  );
+});
+
+test('CacheService - добавляем потомка к удаленному элементу, при наличии потомка добавляемого элемента в кэше', async () => {
+  const cacheService = new CacheService();
+  const databaseService = createTestDatabaseService();
+
+  // 1) Загрузить A1
+  const loadA1Result = await cacheService.loadElement(databaseService, 'A1');
+  assert.strictEqual(loadA1Result.success, true);
+
+  // 2) Добавляем внука
+  const loadA4Result = await cacheService.loadElement(databaseService, 'A3');
+  assert.strictEqual(loadA4Result.success, true);
+
+  // 3) Удаляем корень A1
+  cacheService.deleteElement('A1');
+
+  // 4) Добавляем дочерний элемент
+  await cacheService.loadElement(databaseService, 'A2_1');
+
+  // 5) Проверяем элементы в структуре кэша
+  const cacheStructure = cacheService.getCacheStructure();
+  const expectedCacheElements = ['A1', 'A2_1', 'A3'];
+  checkChainElements(
+    cacheStructure,
+    expectedCacheElements,
+    true,
+    'структуре кэша',
+  );
+});
+
+test('CacheService - Повторно добавляем элемент в удалённой цепочке', async () => {
+  const cacheService = new CacheService();
+  const databaseService = createTestDatabaseService();
+
+  await cacheService.loadElement(databaseService, 'A1');
+  await cacheService.loadElement(databaseService, 'A2_1');
+  cacheService.deleteElement('A1');
+
+  const cacheStructure = cacheService.getCacheStructure();
+  const expectedCacheElements = ['A1', 'A2_1'];
+  checkChainElements(
+    cacheStructure,
+    expectedCacheElements,
+    true,
+    'структуре кэша',
+  );
+
+  // повторно добавляем элемент в удалённой цепочке, она должна остаться удаленной
+  await cacheService.loadElement(databaseService, 'A2_1');
+  const cacheStructure2 = cacheService.getCacheStructure();
+  const expectedCacheElements2 = ['A1', 'A2_1'];
+
+  checkChainElements(
+    cacheStructure2,
+    expectedCacheElements2,
+    true,
+    'структуре кэша',
+  );
+});

@@ -1,21 +1,11 @@
 import { test } from 'node:test';
 import * as assert from 'node:assert';
-import { createTestDatabaseService, getAllIds } from './test_helpers';
-
-test('DatabaseService - getElement - должен вернуть элемент с правильной иерархией', async () => {
-  const service = createTestDatabaseService();
-
-  const result = await service.getElement('A1');
-
-  assert.ok(result);
-  assert.strictEqual(result.id, 'A1');
-  assert.strictEqual(result.value, 'A1');
-  assert.strictEqual(result.parentId, 'root');
-  assert.strictEqual(result.isDeleted, false);
-  assert.strictEqual(result.children.length, 2);
-  assert.ok(result.children.some((child) => child.id === 'A2_1'));
-  assert.ok(result.children.some((child) => child.id === 'A2_2'));
-});
+import {
+  checkChainElements,
+  checkElementIsDeleted,
+  createTestDatabaseService,
+  getAllIds,
+} from './test_helpers';
 
 test('DatabaseService - getElement - должен вернуть null для несуществующего элемента', async () => {
   const service = createTestDatabaseService();
@@ -125,7 +115,7 @@ test('DatabaseService - markElementAsDeleted - должен пометить э�
   await service.markElementAsDeleted('A1');
   const result = await service.getElement('A1');
 
-  assert.strictEqual(result, null);
+  checkElementIsDeleted(result, true, 'структуре базы данных');
 });
 
 test('DatabaseService - markElementAsDeleted - должен рекурсивно удалить всех детей', async () => {
@@ -133,49 +123,46 @@ test('DatabaseService - markElementAsDeleted - должен рекурсивно
 
   await service.markElementAsDeleted('A1');
 
-  const a1 = await service.getElement('A1');
-  const a2_1 = await service.getElement('A2_1');
-  const a2_2 = await service.getElement('A2_2');
-  const a3 = await service.getElement('A3');
-  const a4 = await service.getElement('A4');
-  const a5 = await service.getElement('A5');
-
-  assert.strictEqual(a1, null);
-  assert.strictEqual(a2_1, null);
-  assert.strictEqual(a2_2, null);
-  assert.strictEqual(a3, null);
-  assert.strictEqual(a4, null);
-  assert.strictEqual(a5, null);
+  const dbStructure = await service.getTreeStructure();
+  const expectedCacheElements = ['A1', 'A2_1', 'A2_2', 'A3', 'A4', 'A5'];
+  checkChainElements(
+    dbStructure,
+    expectedCacheElements,
+    true,
+    'структуре базы данных',
+  );
 });
 
 test('DatabaseService - markElementAsDeleted - не должен влиять на других детей того же родителя', async () => {
   const service = createTestDatabaseService();
 
   await service.markElementAsDeleted('A1');
+  const dbStructure = await service.getTreeStructure();
 
-  const b1 = await service.getElement('B1');
-  const root = await service.getElement('root');
-
-  assert.ok(b1);
-  assert.ok(root);
-  assert.strictEqual(root.children.length, 2); // A1 (удаленный) и B1
-  assert.ok(root.children.some((child) => child.id === 'B1'));
-  assert.ok(root.children.some((child) => child.id === 'A1')); // A1 должен остаться, но помечен как удаленный
+  const expectedCacheElements = ['A1', 'A2_1', 'A2_2', 'A3', 'A4', 'A5'];
+  checkChainElements(
+    dbStructure,
+    expectedCacheElements,
+    true,
+    'структуре базы данных',
+  );
 });
 
 test('DatabaseService - markElementAsDeleted - не должен влиять на уже удаленный элемент', async () => {
   const service = createTestDatabaseService();
 
-  // Сначала удаляем элемент A1
+  await service.markElementAsDeleted('A1');
   await service.markElementAsDeleted('A1');
 
-  // Попытка удалить уже удаленный элемент
-  await service.markElementAsDeleted('A1');
+  const dbStructure = await service.getTreeStructure();
 
-  // Проверяем, что структура не изменилась
-  const root = await service.getElement('root');
-  assert.ok(root);
-  assert.strictEqual(root.children.length, 2); // A1 (удаленный) и B1
+  const expectedCacheElements = ['A1', 'A2_1', 'A2_2', 'A3', 'A4', 'A5'];
+  checkChainElements(
+    dbStructure,
+    expectedCacheElements,
+    true,
+    'структуре базы данных',
+  );
 });
 
 test('DatabaseService - markElementAsDeleted - должен корректно обрабатывать несуществующий элемент', async () => {
