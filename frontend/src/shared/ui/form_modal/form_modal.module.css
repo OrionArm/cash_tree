@@ -1,13 +1,11 @@
 .modalContent {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px;
+  gap: 24px;
 }
 
 .modalButtons {
   display: flex;
-  gap: 8px;
   justify-content: flex-end;
-  margin-top: 8px;
+  gap: 12px;
 }

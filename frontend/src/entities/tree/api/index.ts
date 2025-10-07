@@ -1,6 +1,6 @@
 export * from './db_fetch';
 export * from './load_to_cache';
-export * from './cash_fetch';
+export * from './cache_fetch';
 export * from './cache_create';
 export * from './cache_update';
 export * from './cache_delete';

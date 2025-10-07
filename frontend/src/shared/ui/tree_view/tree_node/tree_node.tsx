@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import styles from './tree_node.module.css';
 import { useState } from 'react';
 import { ToggleButton } from '@/shared/ui/toggle_button';
+import { getNodeLabel } from './utils';
 
 type Props = {
   node: TreeNode;
@@ -44,7 +45,7 @@ export const TreeNodeView: React.FC<Props> = ({ node, level, selectedNodeId, onN
         )}
         {(!hasChildren || isDeleted) && <div className={styles.spacer} />}
         <span className={clsx(styles.nodeName, { [styles.deleted]: isDeleted })}>
-          {node.value || node.name || 'Unnamed'}
+          {getNodeLabel(node)}
         </span>
       </div>
       {hasChildren && isExpanded && (

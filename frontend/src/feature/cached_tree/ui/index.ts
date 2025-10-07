@@ -1,1 +1,1 @@
-export { CachedTreeView } from './сached_tree_view';
+export { CachedTreeView } from './cached_tree_view';

@@ -11,6 +11,7 @@ type Props = {
   autoFocus?: boolean;
   className?: string;
   type?: 'text' | 'email' | 'password' | 'number';
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 };
 
 export const Input: React.FC<Props> = ({
@@ -22,6 +23,7 @@ export const Input: React.FC<Props> = ({
   autoFocus = false,
   className = '',
   type = 'text',
+  onKeyDown,
 }) => {
   return (
     <div className={clsx(styles.field, className)}>
@@ -30,6 +32,7 @@ export const Input: React.FC<Props> = ({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         disabled={disabled}
         autoFocus={autoFocus}

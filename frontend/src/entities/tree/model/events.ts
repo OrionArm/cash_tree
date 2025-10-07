@@ -1,3 +1,3 @@
 import { createEvent } from 'effector';
 
-export const loadToCacheEv = createEvent<string>();
+export const loadToCache = createEvent<string>();

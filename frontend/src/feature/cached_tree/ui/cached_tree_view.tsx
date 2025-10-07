@@ -1,21 +1,28 @@
-import React, { useMemo } from 'react';
-import { ValueModal } from './value_modal';
-import { AddChildModal } from './add_child_modal';
+import React, { useEffect, useMemo } from 'react';
+import { useUnit } from 'effector-react';
+import { FormModal } from '@/shared/ui/form_modal';
 import { ActionBar, type ActionBarAction } from '@/shared/ui/action_bar';
-import { useCachedTree } from '../lib/use_cached_tree';
 import styles from './cached_tree_view.module.css';
 import { TreeView } from '@/shared/ui/tree_view';
 import {
-  applyCacheEv,
-  closeAddChildModalEv,
-  closeValueModalEv,
-  openAddChildModalEv,
-  openValueModalEv,
-  removeFromCacheEv,
-  resetCacheDataEv,
-  saveChildNodeEv,
-  saveNodeValueEv,
-  selectCacheNodeEv,
+  $cache,
+  $selectedCacheNode,
+  $selectedNode,
+  $isValueModalOpen,
+  $isAddChildModalOpen,
+  $isLoading,
+  $hasOperations,
+  fetchCacheData,
+  applyCache,
+  closeAddChildModal,
+  closeValueModal,
+  openAddChildModal,
+  openValueModal,
+  removeFromCache,
+  resetCacheData,
+  saveChildNode,
+  saveNodeValue,
+  selectCacheNode,
 } from '../model';
 
 export const CachedTreeView: React.FC = () => {
@@ -27,7 +34,19 @@ export const CachedTreeView: React.FC = () => {
     isAddChildModalOpen,
     isLoading,
     hasOperations,
-  } = useCachedTree();
+  } = useUnit({
+    cacheNodes: $cache,
+    selectedNodeId: $selectedCacheNode,
+    selectedNode: $selectedNode,
+    isValueModalOpen: $isValueModalOpen,
+    isAddChildModalOpen: $isAddChildModalOpen,
+    isLoading: $isLoading,
+    hasOperations: $hasOperations,
+  });
+
+  useEffect(() => {
+    fetchCacheData();
+  }, []);
 
   const toolbarActions: ActionBarAction[] = useMemo(
     () => [
@@ -36,37 +55,37 @@ export const CachedTreeView: React.FC = () => {
         label: 'Удалить',
         icon: '🗑️',
         disabled: !selectedNodeId,
-        onClick: () => selectedNodeId && removeFromCacheEv(selectedNodeId),
+        onClick: () => selectedNodeId && removeFromCache(selectedNodeId),
       },
       {
         id: 'setValue',
         label: 'Задать значение',
         icon: '✏️',
         disabled: !selectedNodeId,
-        onClick: openValueModalEv,
+        onClick: openValueModal,
       },
       {
         id: 'addChild',
         label: 'Добавить дочерний',
         icon: '➕',
         disabled: !selectedNodeId,
-        onClick: openAddChildModalEv,
+        onClick: openAddChildModal,
       },
       {
         id: 'save',
         label: 'Сохранить в БД',
         icon: '💾',
         disabled: !hasOperations,
-        onClick: applyCacheEv,
+        onClick: applyCache,
       },
       {
         id: 'reset',
         label: 'Сбросить',
         icon: '🔄',
-        onClick: resetCacheDataEv,
+        onClick: resetCacheData,
       },
     ],
-    [selectedNodeId, hasOperations, cacheNodes.length],
+    [selectedNodeId, hasOperations],
   );
 
   return (
@@ -75,26 +94,31 @@ export const CachedTreeView: React.FC = () => {
         title="Кэш (с асинхронной загрузкой)"
         nodes={cacheNodes}
         selectedNodeId={selectedNodeId}
-        onNodeSelect={selectCacheNodeEv}
+        onNodeSelect={selectCacheNode}
         emptyMessage="Кэш пуст"
         isLoading={isLoading}
       >
         <ActionBar actions={toolbarActions} />
       </TreeView>
 
-      <ValueModal
+      <FormModal
         isOpen={isValueModalOpen}
-        onClose={closeValueModalEv}
-        onSave={saveNodeValueEv}
+        onClose={closeValueModal}
+        onSave={saveNodeValue}
+        title={`Задать значение для "${selectedNode?.value || ''}"`}
+        inputLabel="Значение:"
         initialValue={selectedNode?.value || ''}
-        nodeName={selectedNode?.value || ''}
+        saveButtonText="Сохранить"
       />
 
-      <AddChildModal
+      <FormModal
         isOpen={isAddChildModalOpen}
-        onClose={closeAddChildModalEv}
-        onSave={saveChildNodeEv}
-        parentName={selectedNode?.value || ''}
+        onClose={closeAddChildModal}
+        onSave={saveChildNode}
+        title={`Добавить дочерний элемент в "${selectedNode?.value || ''}"`}
+        inputLabel="Название:"
+        initialValue=""
+        saveButtonText="Добавить"
       />
     </div>
   );

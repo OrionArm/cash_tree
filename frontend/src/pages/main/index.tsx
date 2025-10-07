@@ -7,7 +7,7 @@ import { Header } from '@/shared/ui/header';
 export const MainPage: React.FC = () => {
   return (
     <div className={styles.container}>
-      <Header title="Cash Tree" />
+      <Header title="Cache Tree" />
 
       <main className={styles.content}>
         <CachedTreeView />
