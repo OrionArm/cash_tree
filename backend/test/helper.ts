@@ -1,4 +1,5 @@
 // This file contains code that we reuse between our tests.
+import 'reflect-metadata';
 import * as path from 'node:path';
 import * as test from 'node:test';
 const helper = require('fastify-cli/helper.js');

@@ -1,11 +1,8 @@
 import { API_CONFIG } from '@/shared/config/api';
 import { createEffect } from 'effector';
+import type { LoadResult } from '../model/api_types';
 
-export interface LoadToCacheResponse {
-  success: boolean;
-  message: string;
-  error?: string;
-}
+export type LoadToCacheResponse = LoadResult;
 
 const loadToCache = async (elementId: string): Promise<LoadToCacheResponse> => {
   const response = await fetch(API_CONFIG.ENDPOINTS.cacheLoad, {
@@ -20,7 +17,7 @@ const loadToCache = async (elementId: string): Promise<LoadToCacheResponse> => {
     throw new Error('Ошибка при загрузке узла в кэш');
   }
 
-  return await response.json();
+  return (await response.json()) as LoadToCacheResponse;
 };
 
 export const loadToCacheFx = createEffect(loadToCache);

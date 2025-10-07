@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import AutoLoad, { AutoloadPluginOptions } from '@fastify/autoload';
 import { FastifyPluginAsync, FastifyServerOptions } from 'fastify';
+import { TypeBoxValidatorCompiler } from '@fastify/type-provider-typebox';
 
 export interface AppOptions
   extends FastifyServerOptions,
@@ -25,6 +26,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
   fastify,
   opts,
 ): Promise<void> => {
+  fastify.setValidatorCompiler(TypeBoxValidatorCompiler);
+
   void fastify.register(AutoLoad, {
     dir: join(__dirname, 'plugins'),
     options: opts,

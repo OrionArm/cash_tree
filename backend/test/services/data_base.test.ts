@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { test } from 'node:test';
 import * as assert from 'node:assert';
 import {
@@ -29,10 +30,12 @@ test('DatabaseService - getTreeStructure - должен вернуть толь�
   const result = await service.getTreeStructure();
 
   assert.strictEqual(result.length, 1);
-  assert.strictEqual(result[0].id, 'root');
-  assert.strictEqual(result[0].children.length, 2);
-  assert.ok(result[0].children.some((child) => child.id === 'A1'));
-  assert.ok(result[0].children.some((child) => child.id === 'B1'));
+  const root = result[0];
+  assert.ok(root);
+  assert.strictEqual(root.id, 'root');
+  assert.strictEqual(root.children.length, 2);
+  assert.ok(root.children.some((child) => child.id === 'A1'));
+  assert.ok(root.children.some((child) => child.id === 'B1'));
 });
 
 test('DatabaseService - getTreeStructure - должен включать удаленные элементы', async () => {

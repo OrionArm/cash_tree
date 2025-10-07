@@ -1,16 +1,13 @@
 import { API_CONFIG } from '@/shared/config/api';
 import { createEffect } from 'effector';
+import type { OperationResult } from '../model/api_types';
 
 export interface CacheUpdateRequest {
   elementId: string;
   value: string;
 }
 
-export interface CacheUpdateResponse {
-  success: boolean;
-  message: string;
-  error?: string;
-}
+export type CacheUpdateResponse = OperationResult;
 
 const cacheUpdate = async (data: CacheUpdateRequest): Promise<CacheUpdateResponse> => {
   const response = await fetch(API_CONFIG.ENDPOINTS.cacheUpdate, {
@@ -25,7 +22,7 @@ const cacheUpdate = async (data: CacheUpdateRequest): Promise<CacheUpdateRespons
     throw new Error('Ошибка при обновлении элемента в кэше');
   }
 
-  return await response.json();
+  return (await response.json()) as CacheUpdateResponse;
 };
 
 export const cacheUpdateFx = createEffect<CacheUpdateRequest, CacheUpdateResponse>(cacheUpdate);

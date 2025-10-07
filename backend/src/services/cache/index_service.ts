@@ -1,9 +1,11 @@
+import { singleton } from 'tsyringe';
 import { TreeNode } from '../../dto/types';
 
+@singleton()
 export class IndexService {
-  private parentToChildrenIndex: Map<string, Set<string>> = new Map();
-  private rootElementsIndex: Set<string> = new Set();
-  private dirtyElements: Set<string> = new Set();
+  private readonly parentToChildrenIndex: Map<string, Set<string>> = new Map();
+  private readonly rootElementsIndex: Set<string> = new Set();
+  private readonly dirtyElements: Set<string> = new Set();
 
   addToParentIndex(elementId: string, parentId: string | null): void {
     if (parentId === null) {
@@ -54,7 +56,7 @@ export class IndexService {
       const element = cache.get(elementId);
       if (!element) return;
 
-      element.children = [];
+      element.children.length = 0;
       const childrenSet = this.parentToChildrenIndex.get(elementId);
       if (childrenSet) {
         childrenSet.forEach((childId) => {

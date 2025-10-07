@@ -1,8 +1,9 @@
+import { singleton } from 'tsyringe';
 import { TreeNode } from '../../dto/types';
 import { DatabaseService } from '../data_base';
 import { ValidationService } from './validation_service';
 import { CacheOperation } from './operation_service';
-import { ApplyChangesResponse } from '../../dto/response/note';
+import { ApplyChangesResponse } from '../../dto/response/responses';
 
 export interface CacheLoadResult {
   success: boolean;
@@ -16,6 +17,7 @@ export interface CacheElementLoadResult {
   descendants: TreeNode[];
 }
 
+@singleton()
 export class CacheLoaderService {
   async loadElement(
     databaseService: DatabaseService,
@@ -42,7 +44,6 @@ export class CacheLoaderService {
       };
     }
 
-    // Создаем кэш-элемент без потомков
     const element = loadResult.element!;
     cache.set(element.id, element);
 
@@ -55,7 +56,7 @@ export class CacheLoaderService {
   }
 
   async applyOperations(
-    operations: CacheOperation[],
+    operations: readonly CacheOperation[],
     databaseService: DatabaseService,
     cache: Map<string, TreeNode>,
   ): Promise<ApplyChangesResponse> {
@@ -105,7 +106,6 @@ export class CacheLoaderService {
       } catch (error) {
         const errorMessage = `Ошибка применения операции ${operation.type} для элемента ${operation.elementId}: ${error}`;
         errors.push(errorMessage);
-        console.error(errorMessage);
       }
     }
 

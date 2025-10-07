@@ -52,7 +52,7 @@ sample({
 
 sample({
   clock: addChildToCache,
-  fn: ({ parentId, name }) => ({ parentId, value: name }),
+  fn: ({ parentId, value }) => ({ parentId, value }),
   target: cacheCreateFx,
 });
 

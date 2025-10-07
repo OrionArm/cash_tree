@@ -1,3 +1,4 @@
+import { singleton, inject } from 'tsyringe';
 import { TreeNode } from '../../dto/types';
 import { DatabaseService } from '../data_base';
 import { v4 } from 'uuid';
@@ -5,25 +6,28 @@ import { ValidationService } from './validation_service';
 import { IndexService } from './index_service';
 import { OperationService, CacheOperation } from './operation_service';
 import { CacheLoaderService, CacheLoadResult } from './cache_loader_service';
-import { ApplyChangesResponse } from '../../dto/response/note';
+import { HierarchyService } from './hierarchy_service';
+import { ApplyChangesResponse } from '../../dto/response/responses';
 
 export interface CacheElementLoadResult {
   element: TreeNode | null;
   descendants: TreeNode[];
 }
 
+@singleton()
 export class CacheService {
-  private cache: Map<string, TreeNode> = new Map();
-  private indexService: IndexService;
-  private operationService: OperationService;
-  private cacheLoaderService: CacheLoaderService;
+  private readonly cache: Map<string, TreeNode> = new Map();
   private cachedStructure: TreeNode[] | null = null;
 
-  constructor() {
-    this.indexService = new IndexService();
-    this.operationService = new OperationService();
-    this.cacheLoaderService = new CacheLoaderService();
-
+  constructor(
+    @inject(IndexService) private readonly indexService: IndexService,
+    @inject(OperationService)
+    private readonly operationService: OperationService,
+    @inject(CacheLoaderService)
+    private readonly cacheLoaderService: CacheLoaderService,
+    @inject(HierarchyService)
+    private readonly hierarchyService: HierarchyService,
+  ) {
     this.initializeIndexes();
   }
 
@@ -44,7 +48,7 @@ export class CacheService {
       return this.cachedStructure;
     }
 
-    this.cachedStructure = this.buildCacheStructure();
+    this.cachedStructure = this.hierarchyService.buildTreeStructure(this.cache);
     return this.cachedStructure;
   }
 
@@ -88,7 +92,7 @@ export class CacheService {
     const element = this.cache.get(elementId);
     if (!ValidationService.isElementValidAndNotDeleted(element)) return false;
 
-    this.markElementAndChildAsDeleted(element);
+    this.hierarchyService.markElementAndChildrenAsDeleted(element);
     this.operationService.addDeleteOperation(elementId);
     this.indexService.markElementAsDirty(elementId, element.parentId);
     this.invalidateCache();
@@ -113,6 +117,8 @@ export class CacheService {
     ) {
       // Обновляем элемент в кэше и индекс
       const loadedElement = result.loadedElements[0];
+      if (!loadedElement) return result;
+
       this.cache.set(loadedElement.id, loadedElement);
       this.updateElementIndexes(loadedElement.id, loadedElement.parentId);
 
@@ -121,7 +127,7 @@ export class CacheService {
       if (loadedElement.parentId) {
         const parent = this.cache.get(loadedElement.parentId);
         if (parent) {
-          this.addChildToParent(parent, loadedElement);
+          this.hierarchyService.addChildToParent(parent, loadedElement);
         } else {
           // Если родитель не загружен в кэш, делаем элемент корневым, но сохраняем оригинальный parentId
           // Оригинальный parentId уже сохранен в loadedElement.parentId из базы данных
@@ -132,7 +138,11 @@ export class CacheService {
 
       // Этап 2: Обрабатываем существующих детей в кэше
       // Ищем элементы в кэше, которые должны стать дочерними для загруженного элемента
-      this.moveExistingChildrenToParent(loadedElement);
+      this.hierarchyService.moveExistingChildrenToParent(
+        loadedElement,
+        this.cache,
+        this.updateElementIndexes.bind(this),
+      );
     }
 
     this.invalidateCache();
@@ -146,7 +156,7 @@ export class CacheService {
     this.cachedStructure = null;
   }
 
-  getOperations(): CacheOperation[] {
+  getOperations(): readonly CacheOperation[] {
     return this.operationService.getOperations();
   }
 
@@ -185,7 +195,7 @@ export class CacheService {
     // Если у элемента есть родитель, добавляем его в children родителя
     if (element.parentId) {
       const parent = this.cache.get(element.parentId);
-      if (parent) this.addChildToParent(parent, element);
+      if (parent) this.hierarchyService.addChildToParent(parent, element);
     }
 
     if (element.children && element.children.length > 0) {
@@ -198,33 +208,6 @@ export class CacheService {
     }
   }
 
-  private moveExistingChildrenToParent(parentElement: TreeNode): void {
-    // Ищем только корневые элементы в кэше, которые имеют parentId равный id загруженного элемента
-    const childrenToMove: TreeNode[] = [];
-
-    for (const [_elementId, element] of Array.from(this.cache.entries())) {
-      if (
-        element.parentId === parentElement.id &&
-        element.id !== parentElement.id &&
-        this.indexService.isRootElement(element.id)
-      ) {
-        childrenToMove.push(element);
-      }
-    }
-
-    // Перемещаем найденные элементы
-    childrenToMove.forEach((child) => {
-      // Удаляем из корневых элементов
-      this.indexService.removeFromParentIndex(child.id, null);
-
-      // Добавляем к новому родителю
-      this.updateElementIndexes(child.id, parentElement.id);
-
-      // 3. Добавляем существующих детей к загружаемому элементу
-      this.addChildToParent(parentElement, child);
-    });
-  }
-
   private updateElementIndexes(
     elementId: string,
     parentId: string | null,
@@ -233,47 +216,9 @@ export class CacheService {
     this.indexService.markElementAsDirty(elementId, parentId);
   }
 
-  private addChildToParent(
-    parent: TreeNode,
-    child: TreeNode,
-    skipDuplicateCheck: boolean = false,
-  ): void {
-    const shouldAdd =
-      skipDuplicateCheck ||
-      !parent.children.some((existingChild) => existingChild.id === child.id);
-
-    if (shouldAdd) {
-      parent.children.push(child);
-    }
-
-    // Если родитель удален, помечаем дочерний элемент как удаленный
-    // независимо от того, добавляли ли мы его в children
-    if (parent.isDeleted) {
-      this.markElementAndChildAsDeleted(child);
-    }
-  }
-
   private invalidateCache(): void {
     this.cachedStructure = null;
     this.indexService.rebuildHierarchy(this.cache);
-  }
-
-  private markElementAndChildAsDeleted(element: TreeNode): void {
-    element.isDeleted = true;
-    element.children.forEach((child) =>
-      this.markElementAndChildAsDeleted(child),
-    );
-  }
-
-  private buildCacheStructure(): TreeNode[] {
-    const result: TreeNode[] = [];
-    this.indexService.getRootElements().forEach((id) => {
-      const element = this.cache.get(id);
-      if (element) {
-        result.push(element);
-      }
-    });
-    return result;
   }
 
   private syncDeletedElements(deletedElementIds: string[]): void {
@@ -290,5 +235,3 @@ export class CacheService {
     this.invalidateCache();
   }
 }
-
-export const cacheService = new CacheService();

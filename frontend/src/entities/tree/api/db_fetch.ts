@@ -1,5 +1,5 @@
 import { createEffect } from 'effector';
-import type { TreeNode } from '../model/types';
+import type { TreeNode } from '../model/api_types';
 import { API_CONFIG } from '@/shared/config/api';
 
 const fetchDb = async (): Promise<TreeNode[]> => {
@@ -8,7 +8,7 @@ const fetchDb = async (): Promise<TreeNode[]> => {
     throw new Error('Ошибка при загрузке узлов из БД');
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as TreeNode | TreeNode[];
   return Array.isArray(data) ? data : [data];
 };
 

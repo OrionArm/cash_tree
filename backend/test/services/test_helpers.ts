@@ -1,5 +1,7 @@
+import 'reflect-metadata';
+import { container } from 'tsyringe';
 import { DatabaseService } from '../../src/services/data_base';
-import { CacheService } from '../../src/services/cash';
+import { CacheService } from '../../src/services/cache';
 import type { TreeNode } from '../../src/dto/types';
 import { createTestData } from './test_data';
 import * as assert from 'node:assert';
@@ -8,7 +10,7 @@ import * as assert from 'node:assert';
 export const createTestDatabaseService = (
   testData?: TreeNode[],
 ): DatabaseService => {
-  const service = new DatabaseService();
+  const service = container.resolve(DatabaseService);
   (service as any).database.clear();
   const data = testData || createTestData();
   data.forEach((element) => {
@@ -19,9 +21,9 @@ export const createTestDatabaseService = (
 
 // Хелпер для создания нового экземпляра CacheService с тестовыми данными
 export const createTestCacheService = (testData?: TreeNode[]): CacheService => {
-  const service = new CacheService();
+  const service = container.resolve(CacheService);
   (service as any).cache.clear();
-  (service as any).operations = [];
+  (service as any).operationService.clearOperations();
   const data = testData || createTestData();
   data.forEach((element) => {
     (service as any).cache.set(element.id, element);
@@ -44,7 +46,7 @@ export const getOperationsCount = (service: CacheService): number => {
 };
 
 // Хелпер для получения списка операций из CacheService
-export const getOperations = (service: CacheService): any[] => {
+export const getOperations = (service: CacheService): readonly any[] => {
   return service.getOperations();
 };
 

@@ -1,10 +1,8 @@
 import { createEffect } from 'effector';
 import { API_CONFIG } from '@/shared/config/api';
+import type { OperationsList } from '../model/api_types';
 
-export interface CacheOperationsResponse {
-  operations: any[];
-  hasOperations: boolean;
-}
+export type CacheOperationsResponse = OperationsList;
 
 export const fetchCacheOperationsFx = createEffect(async (): Promise<CacheOperationsResponse> => {
   const response = await fetch(API_CONFIG.ENDPOINTS.cacheOperations, {
@@ -18,5 +16,5 @@ export const fetchCacheOperationsFx = createEffect(async (): Promise<CacheOperat
     throw new Error(`HTTP error! status: ${response.status}`);
   }
 
-  return response.json();
+  return (await response.json()) as CacheOperationsResponse;
 });

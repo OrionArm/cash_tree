@@ -1,13 +1,5 @@
 import type { LoadToCacheResponse } from '../api/load_to_cache';
-
-export interface TreeNode {
-  id: string;
-  name: string;
-  value: string;
-  children: TreeNode[];
-  parentId: string | null;
-  isDeleted: boolean;
-}
+import type { TreeNode } from './api_types';
 
 export interface TreeApi {
   loadFromDb: () => Promise<TreeNode[]>;
@@ -16,4 +8,4 @@ export interface TreeApi {
   saveToDb: (nodes: TreeNode[]) => Promise<void>;
 }
 
-export type { LoadToCacheResponse };
+export type { TreeNode, LoadToCacheResponse };

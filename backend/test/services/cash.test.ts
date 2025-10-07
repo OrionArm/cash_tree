@@ -1,5 +1,7 @@
+import 'reflect-metadata';
 import { test } from 'node:test';
 import * as assert from 'node:assert';
+import { container } from 'tsyringe';
 import {
   createTestCacheService,
   createTestDatabaseService,
@@ -8,7 +10,7 @@ import {
   getOperations,
   checkChainElements,
 } from './test_helpers';
-import { CacheService } from '../../src/services/cash';
+import { CacheService } from '../../src/services/cache';
 
 // ==================== ТЕСТЫ ДЛЯ getElement ====================
 
@@ -254,7 +256,9 @@ test('CacheService - deleteElement - не должен влиять на дру�
   assert.ok(root);
   // После удаления A1, root должен иметь только B1 как ребенка
   assert.strictEqual(root.children.length, 1);
-  assert.strictEqual(root.children[0].id, b1Element.id); // Используем ID созданного элемента
+  const firstChild = root.children[0];
+  assert.ok(firstChild);
+  assert.strictEqual(firstChild.id, b1Element.id); // Используем ID созданного элемента
 });
 
 // ==================== ТЕСТЫ ДЛЯ loadElement ====================
@@ -299,6 +303,7 @@ test('CacheService - loadElement - должен загрузить элемен�
 
   // Элемент должен быть загруженным с оригинальным parentId
   const loadedElement = result.loadedElements[0];
+  assert.ok(loadedElement);
   assert.strictEqual(loadedElement.parentId, 'root'); // Оригинальный parentId из базы данных
   assert.strictEqual(loadedElement.value, 'A1');
   assert.strictEqual(loadedElement.children.length, 0);
@@ -353,9 +358,15 @@ test('CacheService - getOperations - должен вернуть список в
   const operations = service.getOperations();
 
   assert.strictEqual(operations.length, 3);
-  assert.strictEqual(operations[0].type, 'create');
-  assert.strictEqual(operations[1].type, 'update');
-  assert.strictEqual(operations[2].type, 'delete');
+  const op0 = operations[0];
+  const op1 = operations[1];
+  const op2 = operations[2];
+  assert.ok(op0);
+  assert.ok(op1);
+  assert.ok(op2);
+  assert.strictEqual(op0.type, 'create');
+  assert.strictEqual(op1.type, 'update');
+  assert.strictEqual(op2.type, 'delete');
 });
 
 test('CacheService - должен корректно обрабатывать множественные операции', () => {
@@ -419,6 +430,7 @@ test('CacheService - должен корректно обрабатывать з
 
   // Проверяем, что загруженный элемент доступен в кэше
   const loadedElement = result.loadedElements[0];
+  assert.ok(loadedElement);
   const cachedElement = cacheService.getElement(loadedElement.id);
   assert.ok(cachedElement);
 
@@ -477,7 +489,9 @@ test('CacheService - loadElement - должен загружать элемен�
   // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure1 = cacheService.getCacheStructure();
   assert.strictEqual(structure1.length, 1);
-  assert.strictEqual(structure1[0].id, 'root');
+  const root1 = structure1[0];
+  assert.ok(root1);
+  assert.strictEqual(root1.id, 'root');
 
   // Теперь загружаем родителя A1 без потомков
   const result2 = await cacheService.loadElement(databaseService, 'A1');
@@ -495,7 +509,9 @@ test('CacheService - loadElement - должен загружать элемен�
   // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure2 = cacheService.getCacheStructure();
   assert.strictEqual(structure2.length, 1);
-  assert.strictEqual(structure2[0].id, 'root');
+  const root2 = structure2[0];
+  assert.ok(root2);
+  assert.strictEqual(root2.id, 'root');
 
   // Проверяем, что root и A1 присутствуют в структуре
   checkChainElements(structure2, ['root', 'A1'], false, 'структуре кэша');
@@ -525,7 +541,9 @@ test('CacheService - loadElement - должен загружать B2_1 и B1 п
   // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure1 = cacheService.getCacheStructure();
   assert.strictEqual(structure1.length, 1);
-  assert.strictEqual(structure1[0].id, 'root');
+  const root1 = structure1[0];
+  assert.ok(root1);
+  assert.strictEqual(root1.id, 'root');
 
   // Теперь загружаем родителя B1 без потомков
   const result2 = await cacheService.loadElement(databaseService, 'B1');
@@ -543,7 +561,9 @@ test('CacheService - loadElement - должен загружать B2_1 и B1 п
   // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure2 = cacheService.getCacheStructure();
   assert.strictEqual(structure2.length, 1);
-  assert.strictEqual(structure2[0].id, 'root');
+  const root2 = structure2[0];
+  assert.ok(root2);
+  assert.strictEqual(root2.id, 'root');
 
   // Проверяем, что root и B1 присутствуют в структуре
   checkChainElements(structure2, ['root', 'B1'], false, 'структуре кэша');
@@ -576,7 +596,9 @@ test('CacheService - loadElement - должен загружать элемен�
   // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure1 = cacheService.getCacheStructure();
   assert.strictEqual(structure1.length, 1);
-  assert.strictEqual(structure1[0].id, 'root');
+  const root1 = structure1[0];
+  assert.ok(root1);
+  assert.strictEqual(root1.id, 'root');
 
   // Проверяем, что root и A2_1 присутствуют в структуре
   checkChainElements(structure1, ['root', 'A2_1'], false, 'структуре кэша');
@@ -598,7 +620,9 @@ test('CacheService - loadElement - должен загружать элемен�
   // Проверяем, что в кэше есть только один корневой элемент (root)
   const structure2 = cacheService.getCacheStructure();
   assert.strictEqual(structure2.length, 1);
-  assert.strictEqual(structure2[0].id, 'root');
+  const root2 = structure2[0];
+  assert.ok(root2);
+  assert.strictEqual(root2.id, 'root');
 
   // Проверяем, что root, A2_1 и A3 присутствуют в структуре
   checkChainElements(
@@ -610,7 +634,8 @@ test('CacheService - loadElement - должен загружать элемен�
 });
 
 test('CacheService - loadElement - должен переместить ранее загруженный элемент в иерархию при загрузке родителя', async () => {
-  const cacheService = new CacheService();
+  const cacheService = container.resolve(CacheService);
+  cacheService.clear();
   const databaseService = createTestDatabaseService();
 
   // Сначала загружаем дочерний элемент A2_1 (родитель A1 не загружен)
@@ -620,7 +645,9 @@ test('CacheService - loadElement - должен переместить ране�
   // Проверяем, что A2_1 стал корневым элементом (но сохраняет оригинальный parentId)
   const structure1 = cacheService.getCacheStructure();
   assert.strictEqual(structure1.length, 1);
-  assert.strictEqual(structure1[0].id, 'A2_1');
+  const root1 = structure1[0];
+  assert.ok(root1);
+  assert.strictEqual(root1.id, 'A2_1');
 
   const a2_1_before = cacheService.getElement('A2_1');
   assert.ok(a2_1_before);
@@ -633,14 +660,17 @@ test('CacheService - loadElement - должен переместить ране�
   // Проверяем, что A1 стал корневым элементом
   const structure2 = cacheService.getCacheStructure();
   assert.strictEqual(structure2.length, 1);
-  assert.strictEqual(structure2[0].id, 'A1');
+  const root2 = structure2[0];
+  assert.ok(root2);
+  assert.strictEqual(root2.id, 'A1');
 
   // Проверяем, что A1 и A2_1 присутствуют в структуре
   checkChainElements(structure2, ['A1', 'A2_1'], false, 'структуре кэша');
 });
 
 test('CacheService - комплексный тест с загрузкой, созданием, удалением и применением операций', async () => {
-  const cacheService = new CacheService();
+  const cacheService = container.resolve(CacheService);
+  cacheService.clear();
   const databaseService = createTestDatabaseService();
 
   // 1) Загрузить A6
@@ -688,7 +718,8 @@ test('CacheService - комплексный тест с загрузкой, со
 });
 
 test('CacheService - добавляем потомка к удаленному элементу', async () => {
-  const cacheService = new CacheService();
+  const cacheService = container.resolve(CacheService);
+  cacheService.clear();
   const databaseService = createTestDatabaseService();
 
   // 1) Загрузить A3
@@ -713,7 +744,8 @@ test('CacheService - добавляем потомка к удаленному �
 });
 
 test('CacheService - добавляем потомка к удаленному элементу, при наличии потомка добавляемого элемента в кэше', async () => {
-  const cacheService = new CacheService();
+  const cacheService = container.resolve(CacheService);
+  cacheService.clear();
   const databaseService = createTestDatabaseService();
 
   // 1) Загрузить A1
@@ -742,7 +774,8 @@ test('CacheService - добавляем потомка к удаленному �
 });
 
 test('CacheService - Повторно добавляем элемент в удалённой цепочке', async () => {
-  const cacheService = new CacheService();
+  const cacheService = container.resolve(CacheService);
+  cacheService.clear();
   const databaseService = createTestDatabaseService();
 
   await cacheService.loadElement(databaseService, 'A1');
@@ -772,7 +805,8 @@ test('CacheService - Повторно добавляем элемент в уд�
 });
 
 test('CacheService - Загружаем A3, затем A1, удаляем A1, применяем - A3 должен быть удалён', async () => {
-  const cacheService = new CacheService();
+  const cacheService = container.resolve(CacheService);
+  cacheService.clear();
   const databaseService = createTestDatabaseService();
 
   await cacheService.loadElement(databaseService, 'A3');

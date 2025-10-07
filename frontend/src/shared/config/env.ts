@@ -13,8 +13,8 @@ export const isDockerEnvironment = (env: Record<string, string | undefined>): bo
 
 export const getApiUrl = (env: Record<string, string | undefined>): string => {
   if (isDockerEnvironment(env)) {
-    return env.VITE_DOCKER_API_URL || 'http://backend:3001';
+    return env.VITE_DOCKER_API_URL || 'http://backend:3000';
   }
 
-  return env.VITE_API_URL || 'http://localhost:3001';
+  return env.VITE_API_URL || 'http://localhost:3000';
 };

@@ -1,23 +1,30 @@
+import { singleton } from 'tsyringe';
 import { TreeNode } from '../dto/types';
 import { getInitialElements } from './mock';
 
 const sleep = (ms: number = 1): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
+@singleton()
 export class DatabaseService {
   private database: Map<string, TreeNode> = new Map(
     getInitialElements().map((element) => [element.id, element]),
   );
 
-  private buildHierarchy(): Map<string, TreeNode> {
-    const elementMap = new Map(
-      Array.from(this.database.values()).map((el) => [
-        el.id,
-        { ...el, children: [] },
-      ]),
-    );
+  private buildHierarchy(): {
+    elementMap: Map<string, TreeNode>;
+    roots: TreeNode[];
+  } {
+    const elementMap = new Map<string, TreeNode>();
+    const roots: TreeNode[] = [];
 
-    Array.from(elementMap.values()).forEach((el) => {
+    this.database.forEach((el) => {
+      const copy = { ...el, children: [] };
+      elementMap.set(el.id, copy);
+      if (el.parentId === null) roots.push(copy);
+    });
+
+    elementMap.forEach((el) => {
       if (el.parentId) {
         const parent = elementMap.get(el.parentId);
         if (parent) {
@@ -26,7 +33,7 @@ export class DatabaseService {
       }
     });
 
-    return elementMap;
+    return { elementMap, roots };
   }
 
   async getElement(id: string): Promise<TreeNode | null> {
@@ -45,10 +52,9 @@ export class DatabaseService {
   async getTreeStructure(): Promise<TreeNode[]> {
     await sleep();
 
-    const elementMap = this.buildHierarchy();
-    return Array.from(elementMap.values()).filter(
-      (element) => element.parentId === null,
-    );
+    // Теперь получаем корневые элементы напрямую, без фильтрации
+    const { roots } = this.buildHierarchy();
+    return roots;
   }
 
   async createElement(
@@ -119,5 +125,3 @@ export class DatabaseService {
     );
   }
 }
-
-export const databaseService = new DatabaseService();

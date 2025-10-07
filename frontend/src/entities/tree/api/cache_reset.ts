@@ -1,11 +1,8 @@
 import { API_CONFIG } from '@/shared/config/api';
 import { createEffect } from 'effector';
+import type { OperationResult } from '../model/api_types';
 
-export interface CacheResetResponse {
-  success: boolean;
-  message: string;
-  error?: string;
-}
+export type CacheResetResponse = OperationResult;
 
 const cacheReset = async (): Promise<CacheResetResponse> => {
   try {
@@ -14,13 +11,13 @@ const cacheReset = async (): Promise<CacheResetResponse> => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = (await response.json().catch(() => ({}))) as { message?: string };
       throw new Error(
         `Ошибка при сбросе кэша: ${response.status} ${response.statusText} - ${errorData.message || 'Неизвестная ошибка'}`,
       );
     }
 
-    return await response.json();
+    return (await response.json()) as CacheResetResponse;
   } catch (error) {
     console.error('Cache reset error:', error);
     throw error;

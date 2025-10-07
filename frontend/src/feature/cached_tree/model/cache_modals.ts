@@ -51,7 +51,7 @@ sample({
   clock: saveNodeValue,
   source: $selectedCacheNode,
   filter: Boolean,
-  fn: (selectedNodeId, value) => ({ id: selectedNodeId!, value }),
+  fn: (selectedNodeId: string, value: string) => ({ id: selectedNodeId, value }),
   target: updateCacheNode,
 });
 
@@ -61,6 +61,6 @@ sample({
   clock: saveChildNode,
   source: $selectedCacheNode,
   filter: Boolean,
-  fn: (selectedNodeId, name) => ({ parentId: selectedNodeId!, name }),
+  fn: (selectedNodeId: string, value: string) => ({ parentId: selectedNodeId, value }),
   target: addChildToCache,
 });

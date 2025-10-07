@@ -37,14 +37,14 @@ export const FormModal: React.FC<Props> = ({
     const trimmedValue = value.trim();
     if (trimmedValue) {
       onSave(trimmedValue);
-      setValue(''); // Очищаем поле сразу
+      setValue('');
       // onClose вызывается автоматически через effector в cache_modals.ts
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && value.trim()) {
-      e.preventDefault(); // Предотвращаем дефолтное поведение
+      e.preventDefault();
       handleSave();
     }
   };

@@ -5,5 +5,5 @@ export interface UpdateNodePayload {
 
 export interface AddChildPayload {
   parentId: string;
-  name: string;
+  value: string;
 }

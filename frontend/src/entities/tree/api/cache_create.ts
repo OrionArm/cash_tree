@@ -1,19 +1,13 @@
 import { API_CONFIG } from '@/shared/config/api';
 import { createEffect } from 'effector';
+import type { OperationResult } from '../model/api_types';
 
 export interface CacheCreateRequest {
   parentId?: string | null;
   value: string;
 }
 
-import type { TreeNode } from '../model/types';
-
-export interface CacheCreateResponse {
-  success: boolean;
-  message: string;
-  element?: TreeNode;
-  error?: string;
-}
+export type CacheCreateResponse = OperationResult;
 
 const cacheCreate = async (data: CacheCreateRequest): Promise<CacheCreateResponse> => {
   const response = await fetch(API_CONFIG.ENDPOINTS.cacheCreate, {
@@ -28,7 +22,7 @@ const cacheCreate = async (data: CacheCreateRequest): Promise<CacheCreateRespons
     throw new Error('Ошибка при создании элемента в кэше');
   }
 
-  return await response.json();
+  return (await response.json()) as CacheCreateResponse;
 };
 
 export const cacheCreateFx = createEffect<CacheCreateRequest, CacheCreateResponse>(cacheCreate);

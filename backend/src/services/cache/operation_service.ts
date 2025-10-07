@@ -1,3 +1,5 @@
+import { singleton } from 'tsyringe';
+
 export interface CacheOperation {
   type: 'create' | 'update' | 'delete';
   elementId: string;
@@ -5,8 +7,9 @@ export interface CacheOperation {
   value?: string;
 }
 
+@singleton()
 export class OperationService {
-  private operations: CacheOperation[] = [];
+  private readonly operations: CacheOperation[] = [];
 
   addCreateOperation(
     elementId: string,
@@ -36,11 +39,11 @@ export class OperationService {
     });
   }
 
-  getOperations(): CacheOperation[] {
-    return [...this.operations];
+  getOperations(): readonly CacheOperation[] {
+    return this.operations;
   }
 
   clearOperations(): void {
-    this.operations = [];
+    this.operations.length = 0;
   }
 }

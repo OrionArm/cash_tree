@@ -12,7 +12,7 @@ export class ValidationService {
   }
 
   static isValidElementId(elementId: string): boolean {
-    return !!(elementId && typeof elementId === 'string');
+    return typeof elementId === 'string' && elementId.length > 0;
   }
 
   static isValidValue(value: string): boolean {
@@ -29,7 +29,7 @@ export class ValidationService {
   static isElementValidAndNotDeleted(
     element: TreeNode | undefined,
   ): element is TreeNode {
-    return !!(element && !element.isDeleted);
+    return element !== undefined && !element.isDeleted;
   }
 
   static validateCreateElement(parentId: string | null, value: string): void {
