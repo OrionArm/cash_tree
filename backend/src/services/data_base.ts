@@ -89,20 +89,26 @@ export class DatabaseService {
     return null;
   }
 
-  async markElementAsDeleted(elementId: string): Promise<void> {
+  async markElementAsDeleted(elementId: string): Promise<string[]> {
     await sleep();
 
+    const deletedIds: string[] = [];
     const element = this.database.get(elementId);
+
     if (element && !element.isDeleted) {
       element.isDeleted = true;
+      deletedIds.push(element.id);
 
       const children = Array.from(this.database.values()).filter(
         (el) => el.parentId === elementId,
       );
       for (const child of children) {
-        await this.markElementAsDeleted(child.id);
+        const childDeletedIds = await this.markElementAsDeleted(child.id);
+        deletedIds.push(...childDeletedIds);
       }
     }
+
+    return deletedIds;
   }
 
   async reset(): Promise<void> {

@@ -670,19 +670,20 @@ test('CacheService - комплексный тест с загрузкой, со
   const cacheStructure = cacheService.getCacheStructure();
 
   // 8) Проверяем элементы в структуре кэша
+  // A6, node1, node11 должны быть помечены как удалённые, т.к. A6 - потомок A1
   const expectedCacheElements = ['A6', node1.id, node11.id];
   checkChainElements(
     cacheStructure,
     expectedCacheElements,
-    false,
+    true,
     'структуре кэша',
   );
 
   // 9) Проверяем состояние в базе данных
   const dbStructure = await databaseService.getTreeStructure();
 
-  // 10) Проверяем что A6 и его дети (node1, node11) присутствуют в базе и помечены как удаленные
-  const expectedDbElements = ['A1', node1.id, node11.id];
+  // 10) Проверяем что A1, A6 и его дети (node1, node11) присутствуют в базе и помечены как удаленные
+  const expectedDbElements = ['A1', 'A6', node1.id, node11.id];
   checkChainElements(dbStructure, expectedDbElements, true, 'базе данных');
 });
 
@@ -768,4 +769,24 @@ test('CacheService - Повторно добавляем элемент в уд�
     true,
     'структуре кэша',
   );
+});
+
+test('CacheService - Загружаем A3, затем A1, удаляем A1, применяем - A3 должен быть удалён', async () => {
+  const cacheService = new CacheService();
+  const databaseService = createTestDatabaseService();
+
+  await cacheService.loadElement(databaseService, 'A3');
+  await cacheService.loadElement(databaseService, 'A1');
+  cacheService.deleteElement('A1');
+  const applyResult = await cacheService.applyOperations(databaseService);
+  assert.strictEqual(applyResult.success, true);
+
+  const dbStructure = await databaseService.getTreeStructure();
+  const cacheStructure = cacheService.getCacheStructure();
+
+  // В БД: A1 и все его потомки (A2_1, A3) должны быть удалены
+  checkChainElements(dbStructure, ['A1', 'A2_1', 'A3'], true, 'базе данных');
+
+  // В кэше: A3 должен быть помечен как удалённый, чтобы не вводить пользователя в заблуждение
+  checkChainElements(cacheStructure, ['A3'], true, 'структуре кэша');
 });

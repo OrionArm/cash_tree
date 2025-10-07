@@ -13,6 +13,7 @@ import {
   fetchCacheOperationsFx,
 } from '@/entities/tree';
 import type { UpdateNodePayload, AddChildPayload } from './types';
+import { markNodesAsDeleted } from '../lib/helpers';
 
 export const applyCacheEv = createEvent();
 export const addChildToCacheEv = createEvent<AddChildPayload>();
@@ -58,6 +59,20 @@ sample({
 sample({
   clock: applyCacheFx.done,
   target: fetchOperationsEv,
+});
+
+// Синхронизируем кэш на фронте: помечаем элементы как удалённые
+sample({
+  clock: applyCacheFx.doneData,
+  source: $cacheStore,
+  fn: (cacheStore, response) => {
+    const deletedIds = response.deletedElementIds;
+    if (!deletedIds || !deletedIds.length) return cacheStore;
+
+    const deletedSet = new Set(deletedIds);
+    return markNodesAsDeleted(cacheStore, (node) => deletedSet.has(node.id));
+  },
+  target: $cacheStore,
 });
 
 // ________________________________  Загрузка данных в кэш ________________________________
@@ -202,20 +217,10 @@ sample({
   clock: removeFromCacheEv,
   source: $cacheStore,
   fn: (cacheNodes, nodeId) => {
-    const markAsDeleted = (nodes: TreeNode[], shouldMark = false): TreeNode[] => {
-      return nodes.map((node) => {
-        const isTargetNode = node.id === nodeId;
-        const markThisNode = shouldMark || isTargetNode;
-
-        return {
-          ...node,
-          isDeleted: node.isDeleted || markThisNode,
-          children: markAsDeleted(node.children, markThisNode),
-        };
-      });
-    };
-
-    return markAsDeleted(cacheNodes);
+    return markNodesAsDeleted(
+      cacheNodes,
+      (node, parentDeleted) => node.id === nodeId || parentDeleted,
+    );
   },
   target: $cacheStore,
 });

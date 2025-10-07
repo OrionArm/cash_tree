@@ -1,11 +1,12 @@
 import { API_CONFIG } from '@/shared/config/api';
 import { createEffect } from 'effector';
 
-export interface CacheApplyResponse {
+export type CacheApplyResponse = {
   success: boolean;
+  errors: string[];
   message: string;
-  error?: string;
-}
+  deletedElementIds?: string[];
+};
 
 const cacheApply = async (): Promise<CacheApplyResponse> => {
   const response = await fetch(API_CONFIG.ENDPOINTS.cacheApply, {

@@ -57,9 +57,11 @@ export class CacheLoaderService {
   async applyOperations(
     operations: CacheOperation[],
     databaseService: DatabaseService,
+    cache: Map<string, TreeNode>,
   ): Promise<ApplyChangesResponse> {
     const errors: string[] = [];
     let appliedOperations = 0;
+    const deletedElementIds: string[] = [];
 
     if (operations.length === 0) {
       return {
@@ -67,6 +69,7 @@ export class CacheLoaderService {
         appliedOperations: 0,
         errors: [],
         message: 'Нет изменений для применения',
+        deletedElementIds: [],
       };
     }
 
@@ -74,11 +77,16 @@ export class CacheLoaderService {
       try {
         switch (operation.type) {
           case 'create':
-            await databaseService.createElement(
+            const createdElement = await databaseService.createElement(
               operation.elementId,
               operation.parentId!,
               operation.value!,
             );
+
+            const cachedElement = cache.get(operation.elementId);
+            if (cachedElement && createdElement.isDeleted) {
+              deletedElementIds.push(operation.elementId);
+            }
             break;
           case 'update':
             await databaseService.updateElement(
@@ -87,7 +95,10 @@ export class CacheLoaderService {
             );
             break;
           case 'delete':
-            await databaseService.markElementAsDeleted(operation.elementId);
+            const deletedIds = await databaseService.markElementAsDeleted(
+              operation.elementId,
+            );
+            deletedElementIds.push(...deletedIds);
             break;
         }
         appliedOperations++;
@@ -106,6 +117,7 @@ export class CacheLoaderService {
         errors.length === 0
           ? `Успешно применено ${appliedOperations} операций`
           : `Применено ${appliedOperations} из ${operations.length} операций с ошибками`,
+      deletedElementIds,
     };
   }
 

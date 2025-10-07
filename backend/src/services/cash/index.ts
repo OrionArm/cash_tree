@@ -157,11 +157,16 @@ export class CacheService {
     const result = await this.cacheLoaderService.applyOperations(
       operations,
       databaseService,
+      this.cache,
     );
 
     // Очищаем операции только если все операции были успешно применены
     if (result.success) {
       this.operationService.clearOperations();
+
+      if (result.deletedElementIds && result.deletedElementIds.length) {
+        this.syncDeletedElements(result.deletedElementIds);
+      }
     }
 
     return result;
@@ -269,6 +274,20 @@ export class CacheService {
       }
     });
     return result;
+  }
+
+  private syncDeletedElements(deletedElementIds: string[]): void {
+    // Помечаем все элементы из списка удалённых как удалённые в кэше
+    // НЕ удаляем рекурсивно children, т.к. БД уже вернула полный список удалённых
+    deletedElementIds.forEach((elementId) => {
+      const element = this.cache.get(elementId);
+      if (element && !element.isDeleted) {
+        element.isDeleted = true;
+        this.indexService.markElementAsDirty(elementId, element.parentId);
+      }
+    });
+
+    this.invalidateCache();
   }
 }
 

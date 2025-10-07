@@ -21,4 +21,5 @@ export type ApplyChangesResponse = {
   appliedOperations: number;
   errors: string[];
   message: string;
+  deletedElementIds?: string[];
 };
