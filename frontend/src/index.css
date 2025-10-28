@@ -8,25 +8,125 @@
   --color-border-subtle-weak: rgba(255, 255, 255, 0.08);
   --color-ground-stripe-a: #3b2f2f;
   --color-ground-stripe-b: #443333;
-  --color-sky-top: #263b6a;
-  --color-sky-bottom: #1a2440;
+  --color-sky-top: var(--color-cumin); /* тмин для неба */
+  --color-sky-bottom: var(--color-black); /* черный для нижней части неба */
   /* semantic */
   --color-modal-bg: #1a1d26;
   --color-text-weak: #e8e8e8;
   --color-text-weak-2: #e7e7e7;
   --color-text-dark: #1a1a1a;
   --color-text-darker: #0e0f12;
+  --color-white: #ffffff;
   --color-ground-border: rgba(0, 0, 0, 0.35);
-  /* gold theme */
-  --color-gold-1: #ffd700;
-  --color-gold-2: #ffed4e;
-  --color-gold-3: #f0cc54;
-  --color-gold-shadow: #b3902f;
-  --color-gold-shadow-disabled: #8a7a2a;
+
+  /* === ОСНОВНЫЕ ЦВЕТА === */
+  --color-black: rgb(0, 0, 0); /* черный */
+  --color-violet: rgb(25, 25, 239); /* фиалка */
+  --color-mint: rgb(88, 255, 255); /* мята */
+  --color-raspberry: rgb(221, 65, 219); /* малина */
+
+  /* === ДОПОЛНИТЕЛЬНЫЕ ЦВЕТА ДЛЯ АКЦЕНТОВ === */
+  --color-melissa: rgb(60, 255, 185); /* мелисса */
+  --color-sakura: rgb(255, 130, 190); /* сакура */
+
+  /* === Z-INDEX СЛОИ === */
+  --z-bg: 1;
+  --z-parallax-near: 2;
+  --z-ground: 3;
+  --z-player: 4;
+  --z-encounter: 5;
+  --z-overlay: 6;
+  --z-modal: 7;
+  --z-overlay-modal: 8;
+  --z-navigation: 9;
+  --z-loading: 10;
+
+  /* === ЦВЕТА ДЛЯ ФОНА === */
+  --color-cumin: rgb(6, 6, 152); /* тмин */
+  --color-iris: rgb(96, 136, 228); /* ирис */
+  --color-viola: rgb(189, 206, 250); /* виола */
+  --color-henbane: rgb(142, 152, 164); /* белена */
+  --color-lily: rgb(222, 225, 238); /* лилия */
+  --color-slate: #37384d; /* сланец - темно-серый с фиолетовым оттенком */
+
+  /* === ТЕМА КНОПКИ (малиновая) === */
+  --color-crimson-1: rgb(221, 65, 219); /* основной малиновый */
+  --color-crimson-2: rgb(255, 130, 190); /* сакура */
+  --color-crimson-3: rgb(200, 45, 200); /* темный малиновый */
+  --color-crimson-shadow: rgb(150, 30, 150); /* тень малинового */
+  --color-crimson-shadow-disabled: rgb(120, 20, 120); /* тень для disabled */
+  --color-crimson-glow-weak: rgba(221, 65, 219, 0.7);
+  --color-crimson-glow-strong: rgba(221, 65, 219, 1);
+  --color-crimson-glow-soft: rgba(221, 65, 219, 0.6);
+
+  /* === СВЕЧЕНИЕ ДЛЯ ЦВЕТОВ === */
+  --color-melissa-glow-weak: rgba(60, 255, 185, 0.3);
+  --color-melissa-glow-strong: rgba(60, 255, 185, 0.6);
+  --color-iris-glow-weak: rgba(96, 136, 228, 0.3);
+  --color-iris-glow-strong: rgba(96, 136, 228, 0.6);
+  --color-accent-glow-weak: rgba(221, 65, 219, 0.4);
+
+  /* === ЦВЕТА ДЛЯ ДИАЛОГОВ И МОДАЛОК === */
+  --color-dialog-bg-1: #2c3e50; /* темно-синий для диалогов */
+  --color-dialog-bg-2: #34495e; /* серо-синий для диалогов */
+  --color-dialog-speaker: #f39c12; /* оранжевый для спикера */
+  --color-dialog-speaker-2: #e67e22; /* темно-оранжевый */
+  --color-dialog-speaker-shadow: rgba(243, 156, 18, 0.3); /* тень для оранжевых кнопок */
+  --color-dialog-shadow: rgba(0, 0, 0, 0.3); /* тень для диалогов */
+
+  /* === ЦВЕТА ДЛЯ КНОПОК === */
+  --color-button-primary-1: #3498db; /* голубой для кнопок */
+  --color-button-primary-2: #2980b9; /* темно-голубой для кнопок */
+  --color-button-primary-3: #1f4e79; /* очень темно-голубой для кнопок */
+  --color-button-primary-shadow: rgba(52, 152, 219, 0.3); /* тень для кнопок */
+  --color-button-success: #4fc08d; /* зеленый для успешных действий */
+  --color-button-success-2: #22c55e; /* темно-зеленый для кнопок */
+  --color-button-success-shadow: rgba(79, 192, 141, 0.3); /* тень для зеленых кнопок */
+  --color-button-neutral: #e5e7eb; /* нейтральный серый для кнопок */
+
+  /* === ЦВЕТА ДЛЯ ДИАЛОГОВ === */
+  --color-dialog-bg: #66666a; /* серо-синий фон диалогов */
+  --color-dialog-bg-transparent: rgba(102, 102, 106, 0.7); /* полупрозрачный фон диалогов */
+  --color-dialog-option: var(--color-iris); /* синий для кнопок опций */
+  --color-dialog-option-hover: var(--color-sakura); /* розовый для hover опций */
+  --color-dialog-option-active: #6d2c44; /* темно-бордовый для active опций */
+
+  /* === ЗОЛОТЫЕ ЦВЕТА ДЛЯ СУНДУКОВ === */
+  --color-gold-1: #ffd700; /* основной золотой */
   --color-gold-glow-weak: rgba(255, 215, 0, 0.7);
   --color-gold-glow-strong: rgba(255, 215, 0, 1);
   --color-gold-glow-soft: rgba(255, 215, 0, 0.6);
-  /* prefer sRGB interpolation for gradients across browsers */
+
+  /* === ГОТОВЫЕ ГРАДИЕНТЫ === */
+  --gradient-violet-mint: linear-gradient(135deg, var(--color-violet), var(--color-mint));
+  --gradient-raspberry-sakura: linear-gradient(135deg, var(--color-raspberry), var(--color-sakura));
+  --gradient-mint-melissa: linear-gradient(135deg, var(--color-mint), var(--color-melissa));
+  --gradient-cumin-iris: linear-gradient(135deg, var(--color-cumin), var(--color-iris));
+  --gradient-iris-viola: linear-gradient(135deg, var(--color-iris), var(--color-viola));
+  --gradient-viola-lily: linear-gradient(135deg, var(--color-viola), var(--color-lily));
+
+  /* === ГРАДИЕНТЫ ДЛЯ ДИАЛОГОВ И КНОПОК === */
+  --gradient-dialog-bg: linear-gradient(135deg, var(--color-dialog-bg-1), var(--color-dialog-bg-2));
+  --gradient-button-primary: linear-gradient(
+    135deg,
+    var(--color-button-primary-1),
+    var(--color-button-primary-2)
+  );
+  --gradient-button-primary-hover: linear-gradient(
+    135deg,
+    var(--color-button-primary-2),
+    var(--color-button-primary-3)
+  );
+
+  /* === ЦВЕТОВЫЕ КОМБИНАЦИИ ДЛЯ РАЗНЫХ ЭЛЕМЕНТОВ === */
+  --color-primary: var(--color-violet); /* основной цвет интерфейса */
+  --color-secondary: var(--color-mint); /* вторичный цвет */
+  --color-accent: var(--color-raspberry); /* акцентный цвет */
+  --color-success: var(--color-melissa); /* цвет успеха */
+  --color-warning: var(--color-sakura); /* цвет предупреждения */
+  --color-info: var(--color-iris); /* информационный цвет */
+  --color-neutral: var(--color-henbane); /* нейтральный цвет */
+
   --gradient-space: srgb;
   /* utility */
   --white-a20: rgba(255, 255, 255, 0.2);
@@ -36,22 +136,19 @@
   --black-a15: rgba(0, 0, 0, 0.15);
   --black-a20: rgba(0, 0, 0, 0.2);
 
-  /* z-index layers */
-  --z-bg: 0; /* viewport gradient */
-  --z-parallax-far: 1; /* far parallax layer */
-  --z-parallax-near: 2; /* near parallax layer */
-  --z-ground: 3; /* world and ground */
+  --z-bg: 0;
+  --z-parallax-far: 1;
+  --z-parallax-near: 2;
+  --z-ground: 3;
   --z-encounter: 4;
   --z-player: 5;
   --z-overlay: 6;
   --z-overlay-modal: 7;
-  /* asset urls */
+
   --img-parallax-far: url('/far.svg');
   --img-parallax-near: url('/near.svg');
   --img-player: url('/player.svg');
   --img-encounter-npc: url('/npc.svg');
-  --img-encounter-monster: url('/monster.svg');
-  --img-encounter-chest: url('/chest.svg');
 
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

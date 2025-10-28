@@ -1,0 +1,71 @@
+/* Responsive sizing variables */
+.game {
+  --tile: clamp(44px, min(8vw, 7vh), 88px);
+  --ground: calc(var(--tile) * 1.6);
+  --para-far: 0px;
+  --para-near: 0px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - 80px);
+  min-height: calc(100vh - 80px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.gameContent {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-overlay {
+  position: absolute;
+  top: max(20px, env(safe-area-inset-top, 20px));
+  left: max(20px, env(safe-area-inset-left, 20px));
+  right: max(20px, env(safe-area-inset-right, 20px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: var(--z-overlay);
+}
+
+.hud-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .game {
+    height: calc(100vh - 70px); /* Учитываем высоту BottomNavigation на мобильных */
+    min-height: calc(100vh - 70px);
+  }
+
+  .hud-stats {
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  .ui-overlay {
+    gap: 8px; /* Уменьшаем gap между элементами на мобильных */
+  }
+}
+
+@media (max-width: 480px) {
+  .game {
+    height: calc(100vh - 65px); /* Учитываем высоту BottomNavigation на маленьких экранах */
+    min-height: calc(100vh - 65px);
+  }
+}

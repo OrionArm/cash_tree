@@ -1,54 +1,93 @@
-import styles from './app.module.css';
-import LogPanel from '@/features/log_panel';
-import EncounterModal from '@/features/encounter_modal';
-import HUDStat from '@/features/HUD_stat';
-import World from '@/features/world';
-import Button from '@/shared/ui/button';
-import { useGame } from '@/shared/use_game';
+import { GamePage, LoadingScreen, ProfilePage, ShopPage } from '@/pages';
+import BottomNavigation from '@/features/bottom_navigation';
+import type { PageType } from '../shared/types';
+import { useGameContext } from '@/entities/game/use_game_context';
+import { useState } from 'react';
+import { GameProvider } from '@/entities/game/game_provider';
 
-export default function App() {
-  const {
-    worldRef,
-    viewportRef,
-    playerX,
-    log,
-    encounters,
-    loading,
-    activeEncounterId,
-    stepsCount,
-    goldAmount,
-    worldStyle,
-    worldLengthPx,
-    stepForward,
-    resolveEncounter,
-  } = useGame();
+function AppContent() {
+  const { loading, loadingProgress, loadingText, gameStatus } = useGameContext();
+  const [currentPage, setCurrentPage] = useState<PageType>('loading');
 
-  const currentEncounter = activeEncounterId
-    ? encounters.find((e) => e.id === activeEncounterId) || null
-    : null;
+  const getCurrentPage = (): PageType => {
+    if (loading) return 'loading';
+    if (gameStatus === 'won' || gameStatus === 'lost') {
+      return 'profile';
+    }
+    return currentPage === 'loading' ? 'game' : currentPage;
+  };
+
+  const actualCurrentPage = getCurrentPage();
+
+  const handleTabChange = (tabId: string) => {
+    if (tabId === 'profile') {
+      setCurrentPage('profile');
+    } else if (tabId === 'shop') {
+      setCurrentPage('shop');
+    } else if (tabId === 'home' && gameStatus !== 'won' && gameStatus !== 'lost') {
+      setCurrentPage('game');
+    }
+  };
+
+  const getActiveTab = (): string => {
+    switch (actualCurrentPage) {
+      case 'profile':
+        return 'profile';
+      case 'shop':
+        return 'shop';
+      case 'game':
+        return 'home';
+      default:
+        return 'home';
+    }
+  };
+
+  const getPageStyle = (pageType: PageType) => {
+    const isVisible = actualCurrentPage === pageType;
+    return {
+      display: isVisible ? 'block' : 'none',
+      width: '100%',
+      height: '100%',
+    };
+  };
 
   return (
-    <div className={styles.app}>
-      <div className={styles['ui-overlay']}>
-        <div className={styles['hud-stats']}>
-          <HUDStat icon="🦶" label="Ходы" value={stepsCount} align="left" />
-          <HUDStat icon="💰" label="Золото" value={goldAmount} align="right" />
+    <>
+      {loading && <LoadingScreen progress={loadingProgress} loadingText={loadingText} />}
+
+      {!loading && (
+        <div style={getPageStyle('game')}>
+          <GamePage />
         </div>
-        <LogPanel lines={log} />
-      </div>
+      )}
 
-      <World
-        viewportRef={viewportRef}
-        worldRef={worldRef}
-        worldStyle={worldStyle}
-        encounters={encounters}
-        playerX={playerX}
-        worldLengthPx={worldLengthPx}
-      />
+      {!loading && (
+        <div style={getPageStyle('profile')}>
+          <ProfilePage />
+        </div>
+      )}
 
-      <Button onClick={stepForward} disabled={!!activeEncounterId || loading} />
+      {!loading && (
+        <div style={getPageStyle('shop')}>
+          <ShopPage />
+        </div>
+      )}
 
-      <EncounterModal encounter={currentEncounter} onSelect={resolveEncounter} />
-    </div>
+      {!loading && (
+        <BottomNavigation
+          activeTab={getActiveTab()}
+          onTabChange={handleTabChange}
+          gameStatus={gameStatus}
+        />
+      )}
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <GameProvider>
+      <AppContent />
+    </GameProvider>
   );
 }

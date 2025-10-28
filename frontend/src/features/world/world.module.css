@@ -14,7 +14,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(var(--ground) - 24px);
+  bottom: calc(var(--ground));
   height: calc(var(--tile) * 2.8);
   background-repeat: repeat-x;
   background-size: auto 100%;
@@ -25,7 +25,7 @@
 .layerNear {
   background-image: var(--img-parallax-near);
   background-position-x: var(--para-near);
-  bottom: calc(var(--ground) - 20px);
+  bottom: calc(var(--ground) - 4px);
   opacity: 0.95;
   z-index: var(--z-parallax-near);
 }
@@ -54,7 +54,7 @@
 
 .player {
   position: absolute;
-  bottom: calc(var(--ground) - 24px);
+  bottom: calc(var(--ground) - 10px);
   width: calc(var(--tile) * 0.625);
   height: var(--tile);
   margin-left: calc(-0.5 * var(--tile) * 0.625); /* center on x */
@@ -67,24 +67,16 @@
 
 .encounter {
   position: absolute;
-  bottom: calc(var(--ground) - 24px);
-  width: calc(var(--tile) * 0.75);
-  height: calc(var(--tile) * 0.75);
-  margin-left: calc(-0.5 * var(--tile) * 0.75);
+  bottom: calc(var(--ground) - 10px);
+  width: calc(var(--tile) * 1.8);
+  height: calc(var(--tile) * 1.8);
+  margin-left: calc(-0.5 * var(--tile) * 1.8);
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: contain;
   z-index: var(--z-encounter);
 }
-.encounter-npc {
-  background-image: var(--img-encounter-npc);
-}
-.encounter-monster {
-  background-image: var(--img-encounter-monster);
-}
-.encounter-chest {
-  background-image: var(--img-encounter-chest);
-}
+
 .resolved {
   filter: grayscale(1) brightness(0.6);
   opacity: 0.6;

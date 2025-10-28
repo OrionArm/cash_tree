@@ -1,0 +1,185 @@
+.playerRanking {
+  background: var(--color-dialog-bg);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-raspberry);
+  padding: 20px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 20px 0;
+  color: var(--color-raspberry);
+  text-align: center;
+}
+
+.currentPlayerCard {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--color-raspberry), var(--color-henbane));
+  border-radius: 12px;
+  border: 2px solid var(--color-melissa);
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+}
+
+.currentPlayerCard .rank {
+  font-size: 1.8rem;
+  font-weight: bold;
+  min-width: 60px;
+  text-align: center;
+  color: var(--color-white);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.currentPlayerCard .playerInfo {
+  flex: 1;
+}
+
+.currentPlayerCard .playerName {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--color-white);
+  margin-bottom: 8px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.currentPlayerCard .playerStats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.currentPlayerCard .stat {
+  font-size: 1rem;
+  color: var(--color-white);
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.currentPlayerBadge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--color-melissa);
+  color: var(--color-slate);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nearbyPlayers {
+  margin-top: 20px;
+}
+
+.emptyNearby {
+  text-align: center;
+  padding: 20px;
+  color: var(--color-text-weak);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px dashed var(--color-raspberry);
+}
+
+.emptyNearby p {
+  margin: 5px 0;
+}
+
+.nearbyTitle {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0 0 15px 0;
+  color: var(--color-melissa);
+  text-align: center;
+}
+
+.nearbyList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nearbyPlayerRow {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.nearbyPlayerRow:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(5px);
+}
+
+.nearbyPlayerRow .rank {
+  font-size: 1.2rem;
+  min-width: 30px;
+  text-align: center;
+}
+
+.nearbyPlayerRow .playerInfo {
+  flex: 1;
+}
+
+.nearbyPlayerRow .playerName {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--color-white);
+  margin-bottom: 4px;
+}
+
+.nearbyPlayerRow .playerStats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nearbyPlayerRow .stat {
+  font-size: 0.85rem;
+  color: var(--color-text-weak);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .playerRanking {
+    margin-bottom: 15px;
+  }
+
+  .currentPlayerCard {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .currentPlayerCard .rank {
+    font-size: 1.5rem;
+    min-width: auto;
+  }
+
+  .currentPlayerCard .playerStats {
+    justify-content: center;
+  }
+
+  .nearbyPlayerRow .playerStats {
+    gap: 8px;
+  }
+
+  .nearbyPlayerRow .stat {
+    font-size: 0.8rem;
+    padding: 1px 4px;
+  }
+}

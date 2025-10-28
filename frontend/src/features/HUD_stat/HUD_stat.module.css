@@ -1,26 +1,222 @@
 .item {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 6px; /* Уменьшаем gap для мобильных */
+  padding: 6px 10px; /* Уменьшаем padding для мобильных */
   background: var(--color-overlay-bg);
-  border-radius: 10px;
+  border-radius: 8px; /* Уменьшаем радиус для мобильных */
   border: 1px solid var(--color-overlay-border);
   color: var(--color-text-weak-2);
-  font-size: 14px;
+  font-size: 20px; /* Увеличиваем размер шрифта */
   line-height: 1;
   backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .left {
+  /* Убираем специфичные стили для выравнивания */
 }
 .right {
+  /* Убираем специфичные стили для выравнивания */
 }
 
 .icon {
-  font-size: 18px;
+  font-size: 24px; /* Увеличиваем размер иконки */
+  transition: transform 0.3s ease;
 }
 
 .text {
   font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+/* Анимации для увеличения значений */
+.increase {
+  animation: pulseIncrease 0.6s ease-out;
+  border-color: #4ade80;
+  background: linear-gradient(135deg, var(--color-overlay-bg) 0%, rgba(74, 222, 128, 0.1) 100%);
+}
+
+.increase .icon {
+  animation: bounceUp 0.6s ease-out;
+}
+
+.increase .text {
+  color: #4ade80;
+  animation: textGlow 0.6s ease-out;
+}
+
+/* Анимации для уменьшения значений */
+.decrease {
+  animation: pulseDecrease 0.6s ease-out;
+  border-color: #f87171;
+  background: linear-gradient(135deg, var(--color-overlay-bg) 0%, rgba(248, 113, 113, 0.1) 100%);
+}
+
+.decrease .icon {
+  animation: bounceDown 0.6s ease-out;
+}
+
+.decrease .text {
+  color: #f87171;
+  animation: textShake 0.6s ease-out;
+}
+
+/* Общая анимация изменения */
+.change {
+  animation: pulseChange 0.6s ease-out;
+  border-color: #60a5fa;
+  background: linear-gradient(135deg, var(--color-overlay-bg) 0%, rgba(96, 165, 250, 0.1) 100%);
+}
+
+.change .icon {
+  animation: rotate 0.6s ease-out;
+}
+
+.change .text {
+  color: #60a5fa;
+  animation: textPulse 0.6s ease-out;
+}
+
+/* Анимация текста при изменении */
+.textAnimating {
+  animation: textScale 0.3s ease-out;
+}
+
+/* Keyframes для анимаций */
+@keyframes pulseIncrease {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(74, 222, 128, 0.1);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+  }
+}
+
+@keyframes pulseDecrease {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(248, 113, 113, 0.1);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(248, 113, 113, 0);
+  }
+}
+
+@keyframes pulseChange {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(96, 165, 250, 0.1);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0);
+  }
+}
+
+@keyframes bounceUp {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes bounceDown {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes textGlow {
+  0%,
+  100% {
+    text-shadow: 0 0 0 transparent;
+  }
+  50% {
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+  }
+}
+
+@keyframes textShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes textPulse {
+  0%,
+  100% {
+    text-shadow: 0 0 0 transparent;
+  }
+  50% {
+    text-shadow: 0 0 8px rgba(96, 165, 250, 0.6);
+  }
+}
+
+@keyframes textScale {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  .item {
+    padding: 4px 8px; /* Еще больше уменьшаем padding */
+    font-size: 18px; /* Увеличиваем размер шрифта для мобильных */
+    gap: 4px; /* Уменьшаем gap */
+  }
+
+  .icon {
+    font-size: 22px; /* Увеличиваем размер иконки для мобильных */
+  }
 }

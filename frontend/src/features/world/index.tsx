@@ -1,16 +1,6 @@
 import { type CSSProperties, type RefObject } from 'react';
 import styles from './world.module.css';
-
-type EncounterType = 'npc' | 'monster' | 'chest';
-
-type Encounter = {
-  id: string;
-  x: number;
-  type: EncounterType;
-  resolved: boolean;
-  title: string;
-  description: string;
-};
+import type { Encounter, EncounterEventType } from '@/services/events/type';
 
 type Props = {
   viewportRef: RefObject<HTMLDivElement | null>;
@@ -19,6 +9,19 @@ type Props = {
   encounters: Encounter[];
   playerX: number;
   worldLengthPx: number;
+};
+
+const getEncounterTypeClass = (type: EncounterEventType): string => {
+  switch (type) {
+    case 'npc_encounter':
+      return 'npc';
+    case 'treasure':
+      return 'treasure';
+    case 'shop':
+      return 'shop';
+    default:
+      return 'npc';
+  }
 };
 
 export default function World({
@@ -35,8 +38,19 @@ export default function World({
       <div className={styles.layerNear} />
       <div ref={worldRef} className={styles.world} style={worldStyle}>
         {encounters.map((e) => {
-          const encounterClass = `${styles.encounter} ${styles[`encounter-${e.type}`]} ${e.resolved ? styles.resolved : ''}`;
-          return <div key={e.id} className={encounterClass} style={{ left: e.x }} aria-hidden />;
+          const typeClass = getEncounterTypeClass(e.type);
+          const encounterClass = `${styles.encounter} ${styles[`encounter-${typeClass}`]} ${e.resolved ? styles.resolved : ''}`;
+          return (
+            <div
+              key={e.id}
+              className={encounterClass}
+              style={{
+                left: e.x,
+                backgroundImage: `url(${e.imageUrl})`,
+              }}
+              aria-hidden
+            />
+          );
         })}
         <div className={styles.ground} style={{ width: worldLengthPx }} />
         <div className={styles.player} style={{ left: playerX }} />

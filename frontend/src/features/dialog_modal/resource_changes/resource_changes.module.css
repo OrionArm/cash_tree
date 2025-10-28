@@ -1,0 +1,50 @@
+.itemsSection {
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-sakura);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.resourcesHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.inlineStatsChanges {
+  display: flex;
+  align-items: center;
+}
+
+.statChange {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  min-width: 80px;
+  justify-content: center;
+}
+
+.statIcon {
+  font-size: 16px;
+}
+
+.statValue {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.positive {
+  color: var(--color-melissa);
+}
+
+.negative {
+  color: #ff6b6b;
+}

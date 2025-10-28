@@ -6,13 +6,26 @@ type Props = {
   onClose?: () => void;
   children: ReactNode;
   className?: string;
+  closeOnOverlayClick?: boolean;
 };
 
-export default function Modal({ isOpen, onClose, children, className }: Props) {
+export default function Modal({
+  isOpen,
+  onClose,
+  children,
+  className,
+  closeOnOverlayClick = true,
+}: Props) {
   if (!isOpen) return null;
 
+  const handleOverlayClick = () => {
+    if (closeOnOverlayClick && onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <div className={styles.modalOverlay} role="dialog" aria-modal onClick={onClose}>
+    <div className={styles.modalOverlay} role="dialog" aria-modal onClick={handleOverlayClick}>
       <div className={`${styles.modal} ${className || ''}`} onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
