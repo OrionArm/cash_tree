@@ -28,6 +28,7 @@ COPY backend ./backend
 WORKDIR /app/backend
 RUN pnpm install -r --prefer-offline --no-verify-store-integrity \
   && pnpm run build
+EXPOSE 3000
 CMD ["node", "dist/server.js"]
 
 # -------------------- Dev для frontend --------------------
@@ -40,6 +41,8 @@ CMD ["pnpm", "run", "dev"]
 # -------------------- Prod для frontend (vite build + nginx) --------------------
 FROM base AS frontend-build
 COPY frontend ./frontend
+# Копируем всю папку dto/response для TypeScript (на случай добавления новых файлов)
+COPY backend/src/dto/response ./backend/src/dto/response
 WORKDIR /app/frontend
 RUN pnpm install -r --prefer-offline --no-verify-store-integrity \
   && pnpm run build 
@@ -48,5 +51,7 @@ RUN pnpm install -r --prefer-offline --no-verify-store-integrity \
 FROM nginx:alpine AS frontend-prod
 COPY --from=frontend-build /app/frontend/dist /usr/share/nginx/html
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-
+COPY frontend/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 EXPOSE 80
+ENTRYPOINT ["/docker-entrypoint.sh"]

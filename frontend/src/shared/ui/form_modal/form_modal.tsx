@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
-import { Modal } from '@/shared/ui/modal';
+import { Modal } from '@/shared/ui/Modal';
 import styles from './form_modal.module.css';
 
 type Props = {

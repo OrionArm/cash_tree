@@ -49,7 +49,7 @@ export const TreeNodeView: React.FC<Props> = ({ node, level, selectedNodeId, onN
       </div>
       {hasChildren && isExpanded && (
         <div className={styles.children}>
-          {node.children.map((child) => (
+          {node.children.map((child: TreeNode) => (
             <TreeNodeView
               key={child.id}
               node={child}
