@@ -9,11 +9,6 @@ import { CacheLoaderService, CacheLoadResult } from './cache_loader_service';
 import { HierarchyService } from './hierarchy_service';
 import { ApplyChangesResponse } from '../../dto/response/responses';
 
-export interface CacheElementLoadResult {
-  element: TreeNode | null;
-  descendants: TreeNode[];
-}
-
 @singleton()
 export class CacheService {
   private readonly cache: Map<string, TreeNode> = new Map();
